@@ -8,10 +8,10 @@ import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentContainerView
 import com.jamal_aliev.fncontroller.R
-import com.jamal_aliev.fncontroller.core.provider.NavigationContextProvider
 import com.jamal_aliev.fncontroller.core.NavigationControllerContract
 import com.jamal_aliev.fncontroller.core.animation.AppearFadeAnimationData
 import com.jamal_aliev.fncontroller.core.animation.DisabledAnimationData
+import com.jamal_aliev.fncontroller.core.provider.NavigationContextProvider
 import com.jamal_aliev.fncontroller.navigator.FNNavigatorHolder
 import com.jamal_aliev.fncontroller.util.requireAppCompatActivity
 import com.jamal_aliev.fncontroller.util.requireNavigationContextChanger
@@ -25,13 +25,13 @@ import java.io.Serializable
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class NavigationControllerScreen(
+open class NavigationControllerFragmentScreen(
     val screens: List<Screen> = mutableListOf() // Нельзя использовать emptyList()
 ) : Screen, Serializable {
     override fun hashCode() = screens.hashCode()
     override fun equals(other: Any?): Boolean {
         if (other === this) return true
-        return other is NavigationControllerScreen
+        return other is NavigationControllerFragmentScreen
                 && (other.screens === this.screens
                 || other.screens == this.screens)
     }
@@ -174,7 +174,7 @@ open class NavigationControllerFragment : Fragment(),
             ?: View.generateViewId()
 
         if (savedInstanceState == null) {
-            val screen = screenResolver.getScreen<BottomDialogNavigationControllerScreen>(this)
+            val screen = screenResolver.getScreen<NavigationControllerBottomDialogScreen>(this)
             requireNavigationContextChanger().setNavigationContext(this)
             for ((index, item) in screen.screens.withIndex()) {
                 if (index == 0) navigator.reset(item)

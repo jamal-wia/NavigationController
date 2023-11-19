@@ -31,13 +31,13 @@ import java.io.Serializable
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class DialogNavigationControllerScreen(
+open class NavigationControllerDialogScreen(
     val canceledOnTouchOutside: Boolean = true,
     val screens: List<Screen> = mutableListOf(),
 ) : Screen, Serializable {
     override fun hashCode() = screens.hashCode()
     override fun equals(other: Any?): Boolean {
-        return if (other !is DialogNavigationControllerScreen) false
+        return if (other !is NavigationControllerDialogScreen) false
         else other.screens == this.screens
     }
 }
@@ -187,7 +187,7 @@ open class NavigationControllerDialog : DialogFragment(),
             ?: View.generateViewId()
 
         if (savedInstanceState == null) {
-            val screen = screenResolver.getScreen<BottomDialogNavigationControllerScreen>(this)
+            val screen = screenResolver.getScreen<NavigationControllerBottomDialogScreen>(this)
             requireNavigationContextChanger().setNavigationContext(this)
             for ((index, item) in screen.screens.withIndex()) {
                 if (index == 0) navigator.reset(item)

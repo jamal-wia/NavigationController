@@ -11,10 +11,10 @@ import androidx.fragment.app.FragmentContainerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.jamal_aliev.fncontroller.R
-import com.jamal_aliev.fncontroller.core.provider.NavigationContextProvider
 import com.jamal_aliev.fncontroller.core.NavigationControllerContract
 import com.jamal_aliev.fncontroller.core.animation.AppearFadeAnimationData
 import com.jamal_aliev.fncontroller.core.animation.DisabledAnimationData
+import com.jamal_aliev.fncontroller.core.provider.NavigationContextProvider
 import com.jamal_aliev.fncontroller.navigator.FNNavigatorHolder
 import com.jamal_aliev.fncontroller.util.requireAppCompatActivity
 import com.jamal_aliev.fncontroller.util.requireNavigationContextChanger
@@ -32,12 +32,12 @@ import java.io.Serializable
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class BottomDialogNavigationControllerScreen(
+open class NavigationControllerBottomDialogScreen(
     val screens: List<Screen> = mutableListOf()
 ) : Screen, Serializable {
     override fun hashCode() = screens.hashCode()
     override fun equals(other: Any?): Boolean {
-        return if (other !is BottomDialogNavigationControllerScreen) false
+        return if (other !is NavigationControllerBottomDialogScreen) false
         else other.screens == this.screens
     }
 }
@@ -187,7 +187,7 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(),
             ?: View.generateViewId()
 
         if (savedInstanceState == null) {
-            val screen = screenResolver.getScreen<BottomDialogNavigationControllerScreen>(this)
+            val screen = screenResolver.getScreen<NavigationControllerBottomDialogScreen>(this)
             requireNavigationContextChanger().setNavigationContext(this)
             for ((index, item) in screen.screens.withIndex()) {
                 if (index == 0) navigator.reset(item)

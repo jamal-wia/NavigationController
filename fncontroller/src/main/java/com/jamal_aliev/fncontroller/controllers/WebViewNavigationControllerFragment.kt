@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
-import com.jamal_aliev.fncontroller.R
 import com.jamal_aliev.fncontroller.core.NavigationControllerContract
 import com.jamal_aliev.fncontroller.navigator.FNNavigatorHolder
 import me.aartikov.alligator.AndroidNavigator
@@ -18,12 +17,12 @@ import java.io.Serializable
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class WebViewControllerScreen(
+open class WebViewNavigationControllerFragmentScreen(
     val url: String
 ) : Screen, Serializable {
     override fun hashCode(): Int = url.hashCode()
     override fun equals(other: Any?): Boolean {
-        return other is WebViewControllerScreen
+        return other is WebViewNavigationControllerFragmentScreen
                 && other.url == this.url
     }
 }
@@ -39,7 +38,11 @@ open class WebViewNavigationControllerFragment : Fragment,
 
     private val navigator: AndroidNavigator get() = FNNavigatorHolder.requireNavigator()
     private val screenResolver get() = navigator.screenResolver
-    private val screen: WebViewControllerScreen by lazy { screenResolver.getScreen(this) }
+    private val screen: WebViewNavigationControllerFragmentScreen by lazy {
+        screenResolver.getScreen(
+            this
+        )
+    }
 
     override fun canGoBack(): Boolean {
         return (requireView() as WebView).run { canGoBack() }

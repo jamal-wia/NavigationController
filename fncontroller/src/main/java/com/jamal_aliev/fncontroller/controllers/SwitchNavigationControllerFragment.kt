@@ -2,12 +2,11 @@ package com.jamal_aliev.fncontroller.controllers
 
 import android.os.Build
 import android.os.Bundle
-import android.view.MenuItem
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
 import com.jamal_aliev.fncontroller.R
-import com.jamal_aliev.fncontroller.core.provider.NavigationContextProvider
 import com.jamal_aliev.fncontroller.core.SwitchNavigationControllerContract
+import com.jamal_aliev.fncontroller.core.provider.NavigationContextProvider
 import com.jamal_aliev.fncontroller.core.screen.SwitchScreen
 import com.jamal_aliev.fncontroller.navigator.FNNavigatorHolder
 import com.jamal_aliev.fncontroller.util.requireAppCompatActivity
@@ -28,7 +27,7 @@ import java.io.Serializable
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class SwitchNavigationControllerScreen(
+open class SwitchNavigationControllerFragmentScreen(
     open val screens: List<SwitchScreen> = ArrayList()
 ) : Screen, Serializable {
 
@@ -36,7 +35,7 @@ open class SwitchNavigationControllerScreen(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        return other is SwitchNavigationControllerScreen
+        return other is SwitchNavigationControllerFragmentScreen
                 && (this.screens === other.screens || this.screens == other.screens)
     }
 }
@@ -57,7 +56,11 @@ abstract class SwitchNavigationControllerFragment : Fragment,
     private val screenResolver: ScreenResolver get() = navigator.screenResolver
     private val navigationFactory: NavigationFactory get() = navigator.navigationFactory
 
-    private val args: SwitchNavigationControllerScreen by lazy { screenResolver.getScreen(this) }
+    private val args: SwitchNavigationControllerFragmentScreen by lazy {
+        screenResolver.getScreen(
+            this
+        )
+    }
 
     private val screenSwitcher by lazy {
         FragmentScreenSwitcher(
@@ -139,9 +142,9 @@ abstract class SwitchNavigationControllerFragment : Fragment,
         if (wantToSwitch.id != currentScreen?.id) {
             requireNavigationContextChanger().setNavigationContext(this)
             navigator.switchTo(wantToSwitch)
-        } else if (currentScreen is NavigationControllerScreen) {
+        } else if (currentScreen is NavigationControllerFragmentScreen) {
             try {
-                val rootNavControllerScreen = currentScreen as NavigationControllerScreen
+                val rootNavControllerScreen = currentScreen as NavigationControllerFragmentScreen
                 val rootScreen = rootNavControllerScreen.screens.firstOrNull() ?: return
                 requireNavigationContextChanger().defaultNavigationContext()
                 navigator.goBackTo(rootScreen::class.java)
