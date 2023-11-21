@@ -39,9 +39,7 @@ open class WebViewNavigationControllerFragment : Fragment,
     private val navigator: AndroidNavigator get() = FNNavigatorHolder.requireNavigator()
     private val screenResolver get() = navigator.screenResolver
     private val screen: WebViewNavigationControllerFragmentScreen by lazy {
-        screenResolver.getScreen(
-            this
-        )
+        screenResolver.getScreen(this)
     }
 
     override fun canGoBack(): Boolean {
