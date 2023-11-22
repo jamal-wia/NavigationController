@@ -1,0 +1,336 @@
+package com.jamal_aliev.fncontroller.core
+
+import android.content.DialogInterface
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
+import androidx.lifecycle.lifecycleScope
+import com.jamal_aliev.fncontroller.controllers.NavigationControllerBottomDialog
+import com.jamal_aliev.fncontroller.controllers.NavigationControllerDialog
+import com.jamal_aliev.fncontroller.controllers.NavigationControllerFragmentScreen
+import com.jamal_aliev.fncontroller.controllers.WebViewNavigationControllerFragment
+import com.jamal_aliev.fncontroller.core.provider.ContainerProvider
+import com.jamal_aliev.fncontroller.core.provider.NavigationContextProvider
+import com.jamal_aliev.fncontroller.core.provider.NavigationScreenSwitcherProvider
+import com.jamal_aliev.fncontroller.core.provider.OnNavigationUpProvider
+import com.jamal_aliev.fncontroller.navigator.FNNavigatorHolder
+import com.jamal_aliev.fncontroller.util.requireAppCompatActivity
+import kotlinx.coroutines.delay
+import me.aartikov.alligator.NavigationContext
+import me.aartikov.alligator.animations.AnimationData
+import me.aartikov.alligator.animations.providers.TransitionAnimationProvider
+import me.aartikov.alligator.exceptions.MissingScreenSwitcherException
+
+class AndroidNavigationContextChangerFragment : Fragment(),
+    DialogInterface.OnDismissListener,
+    NavigationContextChanger,
+    OnNavigationUpProvider {
+
+    private val navigator = FNNavigatorHolder.requireNavigator()
+    private val navigationFactory = navigator.navigationFactory
+
+    private var containerId = CONTAINER_ID_INIT_VALUE
+
+    private var isFirstStart = true
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        isFirstStart = savedInstanceState == null
+        if (isFirstStart) navigator.reset(NavigationControllerFragmentScreen())
+
+        containerId = savedInstanceState?.getInt(CONTAINER_ID_KEY, CONTAINER_ID_INIT_VALUE)
+            ?.takeIf { it != CONTAINER_ID_INIT_VALUE }
+            ?: View.generateViewId()
+
+        requireActivity().onBackPressedDispatcher
+            .addCallback(
+                owner = this,
+                object : OnBackPressedCallback(enabled = true) {
+                    override fun handleOnBackPressed() {
+                        onBackPressed()
+                    }
+                }
+            )
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return FragmentContainerView(requireContext())
+            .apply {
+                id = containerId
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+            }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        bindNavigationContext()
+    }
+
+    override fun onDismiss(dialog: DialogInterface?) {
+        navigator.unbind(requireAppCompatActivity())
+        lifecycleScope.launchWhenResumed {
+            delay(timeMillis = 1L) // Перед bindNavigationContext необходима задержка иначе сработает некорректно
+            bindNavigationContext()
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        navigator.unbind(requireAppCompatActivity())
+    }
+
+    override fun onNavigationUp(animationData: AnimationData?) {
+
+        if (requireAppCompatActivity().onBackPressedDispatcher.hasEnabledCallbacks()) {
+            requireAppCompatActivity().onBackPressedDispatcher.onBackPressed()
+            return
+        }
+        val lastNavigationFragment = getAnyLastNavigationFragment(childFragmentManager.fragments)
+        if (lastNavigationFragment == null) {
+            resetNavigationContext()
+            navigator.reset(NavigationControllerFragmentScreen())
+            return
+        }
+        val canGoBackNavigationFragment = getCanGoBackLastNavigationFragment(lastNavigationFragment)
+        return when {
+            canGoBackNavigationFragment != lastNavigationFragment
+                    && (lastNavigationFragment is NavigationControllerBottomDialog || lastNavigationFragment is NavigationControllerDialog) -> {
+                navigator.goBack()
+            }
+
+            canGoBackNavigationFragment != null && canGoBackNavigationFragment is NavigationControllerContract -> {
+                canGoBackNavigationFragment.onNavigationUp(animationData)
+            }
+
+            else -> {
+                resetNavigationContext()
+                navigator.reset(NavigationControllerFragmentScreen())
+            }
+        }
+    }
+
+    private fun onBackPressed() {
+        val lastNavigationFragment = getAnyLastNavigationFragment(childFragmentManager.fragments)
+        if (lastNavigationFragment == null) {
+            navigator.goBack()
+            return
+        }
+        val canGoBackNavigationFragment = getCanGoBackLastNavigationFragment(lastNavigationFragment)
+        when {
+            canGoBackNavigationFragment != null && canGoBackNavigationFragment is NavigationControllerContract -> {
+                canGoBackNavigationFragment.onNavigationUp()
+            }
+
+            else -> {
+                navigator.goBack()
+            }
+        }
+    }
+
+    override fun setNavigationContext(fragment: Fragment?) {
+        try {
+            bindNavigationContext(fragment)
+        } catch (e: MissingScreenSwitcherException) {
+            defaultNavigationContext()
+        }
+    }
+
+    override fun setFirstNavigationContext() {
+        try {
+            bindNavigationContext(getFirstNavigationFragment(childFragmentManager.fragments))
+        } catch (e: MissingScreenSwitcherException) {
+            defaultNavigationContext()
+        }
+    }
+
+    override fun setLastNavigationContext(lastFragment: Fragment?) {
+        try {
+            bindNavigationContext(getLastNavigationFragment(lastFragment!!))
+        } catch (e: MissingScreenSwitcherException) {
+            defaultNavigationContext()
+        }
+    }
+
+    override fun setFirstTabNavigationContext() {
+        try {
+            bindNavigationContext(getFirstTabNavigationFragment(childFragmentManager.fragments))
+        } catch (e: MissingScreenSwitcherException) {
+            defaultNavigationContext()
+        }
+    }
+
+    override fun setLastTabNavigationContext(lastFragment: Fragment?) {
+        try {
+            bindNavigationContext(getLastTabNavigationFragment(lastFragment!!))
+        } catch (e: MissingScreenSwitcherException) {
+            defaultNavigationContext()
+        }
+    }
+
+    override fun defaultNavigationContext(afterFragment: Fragment?) {
+        bindNavigationContext(afterFragment?.let {
+            getAnyLastNavigationFragment(it.childFragmentManager.fragments)
+        })
+    }
+
+    override fun resetNavigationContext() {
+        try {
+            bindNavigationContext(resetNavigationContext = true)
+        } catch (e: MissingScreenSwitcherException) {
+            defaultNavigationContext()
+        }
+    }
+
+    private fun bindNavigationContext(
+        navigationFragment: Fragment? = null,
+        resetNavigationContext: Boolean = false,
+    ) {
+        if (navigationFragment is NavigationContextProvider) {
+            return navigator.bind(navigationFragment.getNavigationContext())
+        }
+        val lastNavigationFragment =
+            navigationFragment ?: getAnyLastNavigationFragment(childFragmentManager.fragments)
+        if (lastNavigationFragment is NavigationContextProvider) {
+            return navigator.bind(lastNavigationFragment.getNavigationContext())
+        }
+        val navigationContext =
+            NavigationContext.Builder(requireAppCompatActivity(), navigationFactory)
+                .fragmentNavigation(childFragmentManager, requireView().id)
+                .transitionListener { _, _, _, _ ->
+//                Возможно лишний код
+//                if (getAnyLastNavigationFragment(supportFragmentManager.fragments) != null) {
+//                    bindNavigationContext()
+//                }
+                }
+        if (resetNavigationContext) {
+            return navigator.bind(navigationContext.build())
+        }
+        if (lastNavigationFragment is WebViewNavigationControllerFragment) {
+            val preLastNavigationFragment = getLastNavigationFragment(lastNavigationFragment)
+            return bindNavigationContext(preLastNavigationFragment)
+        }
+        if (lastNavigationFragment is ContainerProvider) {
+            navigationContext.fragmentNavigation(
+                lastNavigationFragment.childFragmentManager, lastNavigationFragment.getContainerId()
+            )
+        }
+        if (lastNavigationFragment is TransitionAnimationProvider) {
+            navigationContext.transitionAnimationProvider(lastNavigationFragment)
+        }
+        when (lastNavigationFragment) {
+            is NavigationScreenSwitcherProvider -> {
+                navigationContext.screenSwitcher(lastNavigationFragment.getScreenSwitcher())
+                    .screenSwitchingListener { screenFrom, screenTo ->
+                        if (getAnyLastNavigationFragment(childFragmentManager.fragments) != null) {
+                            bindNavigationContext()
+                        }
+                        lastNavigationFragment.onSwitchScreen(screenFrom, screenTo)
+                    }
+            }
+
+            is NavigationControllerContract -> {
+                navigationContext.transitionListener {
+                        transitionType, destinationType,
+                        screenClassFrom, screenClassTo,
+                    ->
+//                    Возможно лишний код
+//                    if (getAnyLastNavigationFragment(supportFragmentManager.fragments) != null) {
+//                        bindNavigationContext()
+//                    }
+                    lastNavigationFragment.onTransactionScreen(
+                        transitionType = transitionType,
+                        destinationType = destinationType,
+                        screenClassFrom = screenClassFrom,
+                        screenClassTo = screenClassTo
+                    )
+                }
+            }
+        }
+        navigator.bind(navigationContext.build())
+    }
+
+    private fun getFirstNavigationFragment(fragments: List<Fragment>): Fragment? {
+        val navigationFragment = fragments.find { it is NavigationControllerContract }
+        if (navigationFragment != null) return navigationFragment
+        for (item in fragments) {
+            return getFirstNavigationFragment(item.childFragmentManager.fragments)
+        }
+        return null
+    }
+
+    private fun getLastNavigationFragment(lastFragment: Fragment): Fragment? {
+        val parentFragment = lastFragment.parentFragment ?: return null
+        return if (parentFragment is NavigationControllerContract) parentFragment
+        else getLastNavigationFragment(parentFragment)
+    }
+
+    private fun getAnyLastNavigationFragment(fragments: List<Fragment>): Fragment? {
+        val navigationFragment = fragments.findLast {
+            it is NavigationControllerContract || it is SwitchNavigationControllerContract
+        }
+
+        val innerFragments = navigationFragment?.childFragmentManager?.fragments
+        val haveInnerNavigation = innerFragments?.any {
+            it is NavigationControllerContract || it is SwitchNavigationControllerContract
+        } ?: false
+
+        return if (haveInnerNavigation && navigationFragment != null) {
+            getAnyLastNavigationFragment(navigationFragment.childFragmentManager.fragments)
+        } else {
+            navigationFragment
+        }
+    }
+
+    private fun getCanGoBackLastNavigationFragment(lastNavigationFragment: Fragment): Fragment? {
+        when {
+            lastNavigationFragment !is NavigationControllerContract && lastNavigationFragment.parentFragment == null -> {
+                return null
+            }
+
+            lastNavigationFragment !is NavigationControllerContract && lastNavigationFragment.parentFragment != null -> {
+                getCanGoBackLastNavigationFragment(lastNavigationFragment.requireParentFragment())
+            }
+        }
+
+        return when {
+            lastNavigationFragment is NavigationControllerContract && lastNavigationFragment.canGoBack() -> {
+                lastNavigationFragment
+            }
+
+            lastNavigationFragment is NavigationControllerContract && !lastNavigationFragment.canGoBack() && lastNavigationFragment.parentFragment != null -> {
+                getCanGoBackLastNavigationFragment(lastNavigationFragment.requireParentFragment())
+            }
+
+            else -> null
+        }
+    }
+
+    private fun getFirstTabNavigationFragment(fragments: List<Fragment>): Fragment? {
+        val tabNavigationFragment = fragments.find { it is SwitchNavigationControllerContract }
+        if (tabNavigationFragment != null) return tabNavigationFragment
+        fragments.forEach { getFirstTabNavigationFragment(it.childFragmentManager.fragments) }
+        return null
+    }
+
+    private fun getLastTabNavigationFragment(lastFragment: Fragment): Fragment? {
+        val parentFragment = lastFragment.parentFragment ?: return null
+        return if (parentFragment is SwitchNavigationControllerContract) parentFragment
+        else getLastTabNavigationFragment(parentFragment)
+    }
+
+    private companion object {
+        private const val CONTAINER_ID_INIT_VALUE = -1
+        private const val CONTAINER_ID_KEY = "container_id"
+    }
+}
