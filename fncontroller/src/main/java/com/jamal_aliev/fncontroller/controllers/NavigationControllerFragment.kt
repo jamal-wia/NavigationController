@@ -1,12 +1,8 @@
 package com.jamal_aliev.fncontroller.controllers
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentContainerView
 import com.jamal_aliev.fncontroller.R
 import com.jamal_aliev.fncontroller.core.NavigationControllerContract
 import com.jamal_aliev.fncontroller.core.animation.AppearFadeAnimationData
@@ -40,7 +36,7 @@ open class NavigationControllerFragmentScreen(
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class NavigationControllerFragment : Fragment(),
+open class NavigationControllerFragment : Fragment(R.layout.container),
     NavigationControllerContract,
     NavigationContextProvider,
     TransitionAnimationProvider {
@@ -50,11 +46,8 @@ open class NavigationControllerFragment : Fragment(),
     private val fragmentNavigator get() = navigator.navigationContext?.fragmentNavigator
     private val screenResolver get() = navigator.screenResolver
 
-    private var containerId: Int = CONTAINER_ID_INIT_VALUE
     override fun getContainerId(): Int {
-        if (containerId == CONTAINER_ID_INIT_VALUE)
-            throw IllegalStateException("containerId is incorrect")
-        return containerId
+        return R.id.container
     }
 
     override fun canGoBack(): Boolean {
@@ -168,11 +161,6 @@ open class NavigationControllerFragment : Fragment(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        containerId = savedInstanceState?.getInt(CONTAINER_ID_KEY, CONTAINER_ID_INIT_VALUE)
-            ?.takeIf { it != CONTAINER_ID_INIT_VALUE }
-            ?: View.generateViewId()
-
         if (savedInstanceState == null) {
             val screen = screenResolver.getScreen<NavigationControllerFragmentScreen>(this)
             requireNavigationContextChanger().setNavigationContext(this)
@@ -191,23 +179,7 @@ open class NavigationControllerFragment : Fragment(),
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        return FragmentContainerView(requireContext())
-            .apply {
-                id = containerId
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                )
-            }
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putInt(CONTAINER_ID_KEY, containerId)
         outState.putSerializable(ANIMATION_POOL_KEY, animationPool)
         super.onSaveInstanceState(outState)
     }

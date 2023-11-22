@@ -2,13 +2,10 @@ package com.jamal_aliev.fncontroller.core
 
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentContainerView
 import androidx.lifecycle.lifecycleScope
+import com.jamal_aliev.fncontroller.R
 import com.jamal_aliev.fncontroller.controllers.NavigationControllerBottomDialog
 import com.jamal_aliev.fncontroller.controllers.NavigationControllerDialog
 import com.jamal_aliev.fncontroller.controllers.NavigationControllerFragmentScreen
@@ -25,7 +22,7 @@ import me.aartikov.alligator.animations.AnimationData
 import me.aartikov.alligator.animations.providers.TransitionAnimationProvider
 import me.aartikov.alligator.exceptions.MissingScreenSwitcherException
 
-class AndroidNavigationContextChangerFragment : Fragment(),
+class AndroidNavigationContextChangerFragment : Fragment(R.layout.container),
     DialogInterface.OnDismissListener,
     NavigationContextChanger,
     OnNavigationUpProvider {
@@ -33,19 +30,12 @@ class AndroidNavigationContextChangerFragment : Fragment(),
     private val navigator = FNNavigatorHolder.requireNavigator()
     private val navigationFactory = navigator.navigationFactory
 
-    private var containerId = CONTAINER_ID_INIT_VALUE
-
     private var isFirstStart = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         isFirstStart = savedInstanceState == null
         if (isFirstStart) navigator.reset(NavigationControllerFragmentScreen())
-
-        containerId = savedInstanceState?.getInt(CONTAINER_ID_KEY, CONTAINER_ID_INIT_VALUE)
-            ?.takeIf { it != CONTAINER_ID_INIT_VALUE }
-            ?: View.generateViewId()
-
         requireActivity().onBackPressedDispatcher
             .addCallback(
                 owner = this,
@@ -55,21 +45,6 @@ class AndroidNavigationContextChangerFragment : Fragment(),
                     }
                 }
             )
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        return FragmentContainerView(requireContext())
-            .apply {
-                id = containerId
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                )
-            }
     }
 
     override fun onResume() {
@@ -206,7 +181,7 @@ class AndroidNavigationContextChangerFragment : Fragment(),
         }
         val navigationContext =
             NavigationContext.Builder(requireAppCompatActivity(), navigationFactory)
-                .fragmentNavigation(childFragmentManager, requireView().id)
+                .fragmentNavigation(childFragmentManager, R.id.container)
                 .transitionListener { _, _, _, _ ->
 //                Возможно лишний код
 //                if (getAnyLastNavigationFragment(supportFragmentManager.fragments) != null) {
