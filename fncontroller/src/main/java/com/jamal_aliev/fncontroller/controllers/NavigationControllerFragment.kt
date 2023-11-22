@@ -174,7 +174,7 @@ open class NavigationControllerFragment : Fragment(),
             ?: View.generateViewId()
 
         if (savedInstanceState == null) {
-            val screen = screenResolver.getScreen<NavigationControllerBottomDialogScreen>(this)
+            val screen = screenResolver.getScreen<NavigationControllerFragmentScreen>(this)
             requireNavigationContextChanger().setNavigationContext(this)
             for ((index, item) in screen.screens.withIndex()) {
                 if (index == 0) navigator.reset(item)
