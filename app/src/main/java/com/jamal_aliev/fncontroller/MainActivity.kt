@@ -19,7 +19,8 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.beginTransaction()
                 .add(rootContainer.id, AndroidNavigationContextChangerFragment())
                 .commitNow()
-            App.navigator.reset(Screens.ColorFragmentScreen(0x000000))
+
+            App.navigator.reset(Screens.AppTabNavigationControllerScreen)
         }
     }
 }

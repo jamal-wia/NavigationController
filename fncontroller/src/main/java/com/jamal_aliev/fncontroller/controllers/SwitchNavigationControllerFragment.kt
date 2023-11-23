@@ -57,9 +57,7 @@ abstract class SwitchNavigationControllerFragment : Fragment,
     private val navigationFactory: NavigationFactory get() = navigator.navigationFactory
 
     private val args: SwitchNavigationControllerFragmentScreen by lazy {
-        screenResolver.getScreen(
-            this
-        )
+        screenResolver.getScreen(this)
     }
 
     private val screenSwitcher by lazy {

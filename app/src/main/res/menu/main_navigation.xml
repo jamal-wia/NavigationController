@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/item1"
+        android:icon="@drawable/ic_bookmark"
+        android:title="tab1" />
+
+    <item
+        android:id="@+id/item2"
+        android:icon="@drawable/ic_bookmark"
+        android:title="tab2" />
+
+    <item
+        android:id="@+id/item3"
+        android:icon="@drawable/ic_bookmark"
+        android:title="tab3" />
+
+    <item
+        android:id="@+id/item4"
+        android:icon="@drawable/ic_bookmark"
+        android:title="tab4" />
+
+    <item
+        android:id="@+id/item5"
+        android:icon="@drawable/ic_bookmark"
+        android:title="tab5" />
+
+</menu>

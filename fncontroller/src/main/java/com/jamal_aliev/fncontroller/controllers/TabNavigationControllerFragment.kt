@@ -1,5 +1,6 @@
 package com.jamal_aliev.fncontroller.controllers
 
+import androidx.annotation.LayoutRes
 import androidx.annotation.MenuRes
 import com.jamal_aliev.fncontroller.core.screen.SwitchScreen
 import com.jamal_aliev.fncontroller.navigator.FNNavigatorHolder
@@ -7,7 +8,7 @@ import me.aartikov.alligator.AndroidNavigator
 import me.aartikov.alligator.ScreenResolver
 
 open class TabNavigationControllerFragmentScreen(
-    @MenuRes val menuId: Int,
+    @MenuRes open val menuId: Int,
     override val screens: List<SwitchScreen> = ArrayList()
 ) : SwitchNavigationControllerFragmentScreen(screens) {
 
@@ -18,7 +19,10 @@ open class TabNavigationControllerFragmentScreen(
     }
 }
 
-abstract class TabNavigationControllerFragment : SwitchNavigationControllerFragment() {
+abstract class TabNavigationControllerFragment : SwitchNavigationControllerFragment {
+
+    constructor() : super()
+    constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
     private val navigator: AndroidNavigator get() = FNNavigatorHolder.requireNavigator()
     private val screenResolver: ScreenResolver get() = navigator.screenResolver
