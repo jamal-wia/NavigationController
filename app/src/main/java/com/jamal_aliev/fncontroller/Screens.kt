@@ -17,25 +17,25 @@ object Screens {
     }
 
     object Tab2NavigationController : NavigationControllerFragmentScreen(
-        screens = listOf(ColorFragmentScreen(0x000000))
+        screens = listOf(ColorFragmentScreen(0xFF0000))
     ), SwitchScreen {
         override val id: Int = R.id.item2
     }
 
     object Tab3NavigationController : NavigationControllerFragmentScreen(
-        screens = listOf(ColorFragmentScreen(0x000000))
+        screens = listOf(ColorFragmentScreen(0x2FFF00))
     ), SwitchScreen {
         override val id: Int = R.id.item3
     }
 
     object Tab4NavigationController : NavigationControllerFragmentScreen(
-        screens = listOf(ColorFragmentScreen(0x000000))
+        screens = listOf(ColorFragmentScreen(0x0037FF))
     ), SwitchScreen {
         override val id: Int = R.id.item4
     }
 
     object Tab5NavigationController : NavigationControllerFragmentScreen(
-        screens = listOf(ColorFragmentScreen(0x000000))
+        screens = listOf(ColorFragmentScreen(0xFFFFFF))
     ), SwitchScreen {
         override val id: Int = R.id.item5
     }
