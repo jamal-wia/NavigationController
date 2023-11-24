@@ -38,7 +38,7 @@ class ColorFragment : Fragment(R.layout.fragment_color) {
             navigator.goForward(Screens.ColorFragmentScreen(randomColor()))
         }
         backButton.setOnClickListener {
-            navigator.goBack()
+            requireActivity().onNavigateUp()
         }
     }
 

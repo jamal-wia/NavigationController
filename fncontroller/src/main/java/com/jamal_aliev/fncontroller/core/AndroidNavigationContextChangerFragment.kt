@@ -66,7 +66,6 @@ class AndroidNavigationContextChangerFragment : Fragment(R.layout.container),
     }
 
     override fun onNavigationUp(animationData: AnimationData?) {
-
         if (requireAppCompatActivity().onBackPressedDispatcher.hasEnabledCallbacks()) {
             requireAppCompatActivity().onBackPressedDispatcher.onBackPressed()
             return
@@ -77,7 +76,7 @@ class AndroidNavigationContextChangerFragment : Fragment(R.layout.container),
             navigator.reset(NavigationControllerFragmentScreen())
             return
         }
-        val canGoBackNavigationFragment = getCanGoBackLastNavigationFragment(lastNavigationFragment)
+        val canGoBackNavigationFragment = getCanGoBackLastFragment(lastNavigationFragment)
         return when {
             canGoBackNavigationFragment != lastNavigationFragment
                     && (lastNavigationFragment is NavigationControllerBottomDialog || lastNavigationFragment is NavigationControllerDialog) -> {
@@ -101,9 +100,10 @@ class AndroidNavigationContextChangerFragment : Fragment(R.layout.container),
             navigator.goBack()
             return
         }
-        val canGoBackNavigationFragment = getCanGoBackLastNavigationFragment(lastNavigationFragment)
-        when {
-            canGoBackNavigationFragment != null && canGoBackNavigationFragment is NavigationControllerContract -> {
+        when (val canGoBackNavigationFragment =
+            getCanGoBackLastFragment(lastNavigationFragment)) {
+
+            is OnNavigationUpProvider -> {
                 canGoBackNavigationFragment.onNavigationUp()
             }
 
@@ -267,24 +267,29 @@ class AndroidNavigationContextChangerFragment : Fragment(R.layout.container),
         }
     }
 
-    private fun getCanGoBackLastNavigationFragment(lastNavigationFragment: Fragment): Fragment? {
+    private fun getCanGoBackLastFragment(lastNavigationFragment: Fragment): Fragment? {
         when {
-            lastNavigationFragment !is NavigationControllerContract && lastNavigationFragment.parentFragment == null -> {
+            lastNavigationFragment !is OnNavigationUpProvider
+                    && lastNavigationFragment.parentFragment == null -> {
                 return null
             }
 
-            lastNavigationFragment !is NavigationControllerContract && lastNavigationFragment.parentFragment != null -> {
-                getCanGoBackLastNavigationFragment(lastNavigationFragment.requireParentFragment())
+            lastNavigationFragment !is OnNavigationUpProvider
+                    && lastNavigationFragment.parentFragment != null -> {
+                getCanGoBackLastFragment(lastNavigationFragment.requireParentFragment())
             }
         }
 
         return when {
-            lastNavigationFragment is NavigationControllerContract && lastNavigationFragment.canGoBack() -> {
+            lastNavigationFragment is OnNavigationUpProvider
+                    && lastNavigationFragment.canGoBack() -> {
                 lastNavigationFragment
             }
 
-            lastNavigationFragment is NavigationControllerContract && !lastNavigationFragment.canGoBack() && lastNavigationFragment.parentFragment != null -> {
-                getCanGoBackLastNavigationFragment(lastNavigationFragment.requireParentFragment())
+            lastNavigationFragment is OnNavigationUpProvider
+                    && !lastNavigationFragment.canGoBack()
+                    && lastNavigationFragment.parentFragment != null -> {
+                getCanGoBackLastFragment(lastNavigationFragment.requireParentFragment())
             }
 
             else -> null

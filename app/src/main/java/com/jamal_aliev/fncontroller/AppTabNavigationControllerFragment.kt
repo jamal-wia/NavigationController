@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.jamal_aliev.fncontroller.controllers.TabNavigationControllerFragment
+import com.jamal_aliev.fncontroller.core.screen.SwitchScreen
 import com.jamal_aliev.fncontroller.navigator.FNNavigatorHolder
 
 class AppTabNavigationControllerFragment : TabNavigationControllerFragment(
@@ -30,5 +31,10 @@ class AppTabNavigationControllerFragment : TabNavigationControllerFragment(
             inflateMenu(args.menuId)
             setOnItemSelectedListener { onScreenSelected(it.itemId).run { true } }
         }
+    }
+
+    override fun onSwitchScreen(screenFrom: SwitchScreen?, screenTo: SwitchScreen) {
+        super.onSwitchScreen(screenFrom, screenTo)
+        bottomNavigationView.menu.findItem(screenTo.id).isChecked = true
     }
 }

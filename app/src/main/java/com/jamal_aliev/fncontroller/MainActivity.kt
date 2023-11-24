@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentContainerView
 import com.jamal_aliev.fncontroller.core.AndroidNavigationContextChangerFragment
+import com.jamal_aliev.fncontroller.core.provider.OnNavigationUpProvider
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,4 +24,11 @@ class MainActivity : AppCompatActivity() {
             App.navigator.reset(Screens.AppTabNavigationControllerScreen)
         }
     }
+
+    override fun onNavigateUp(): Boolean {
+        return (supportFragmentManager.fragments.first { it is OnNavigationUpProvider }
+                as OnNavigationUpProvider)
+            .onNavigationUp() == Unit
+    }
+
 }
