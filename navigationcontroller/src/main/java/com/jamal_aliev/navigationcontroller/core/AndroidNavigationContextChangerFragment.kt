@@ -6,9 +6,9 @@ import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.jamal_aliev.navigationcontroller.R
+import com.jamal_aliev.navigationcontroller.controllers.LineNavigationControllerFragmentScreen
 import com.jamal_aliev.navigationcontroller.controllers.NavigationControllerBottomDialog
 import com.jamal_aliev.navigationcontroller.controllers.NavigationControllerDialog
-import com.jamal_aliev.navigationcontroller.controllers.NavigationControllerFragmentScreen
 import com.jamal_aliev.navigationcontroller.controllers.WebViewNavigationControllerFragment
 import com.jamal_aliev.navigationcontroller.core.provider.ContainerProvider
 import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvider
@@ -35,7 +35,7 @@ class AndroidNavigationContextChangerFragment : Fragment(R.layout.container),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         isFirstStart = savedInstanceState == null
-        if (isFirstStart) navigator.reset(NavigationControllerFragmentScreen())
+        if (isFirstStart) navigator.reset(LineNavigationControllerFragmentScreen())
         requireActivity().onBackPressedDispatcher
             .addCallback(
                 owner = this,
@@ -73,7 +73,7 @@ class AndroidNavigationContextChangerFragment : Fragment(R.layout.container),
         val lastNavigationFragment = getAnyLastNavigationFragment(childFragmentManager.fragments)
         if (lastNavigationFragment == null) {
             resetNavigationContext()
-            navigator.reset(NavigationControllerFragmentScreen())
+            navigator.reset(LineNavigationControllerFragmentScreen())
             return
         }
         val canGoBackNavigationFragment = getCanGoBackLastFragment(lastNavigationFragment)
@@ -89,7 +89,7 @@ class AndroidNavigationContextChangerFragment : Fragment(R.layout.container),
 
             else -> {
                 resetNavigationContext()
-                navigator.reset(NavigationControllerFragmentScreen())
+                navigator.reset(LineNavigationControllerFragmentScreen())
             }
         }
     }

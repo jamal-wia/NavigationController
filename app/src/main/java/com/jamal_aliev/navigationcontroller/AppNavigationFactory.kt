@@ -8,23 +8,23 @@ class AppRegistryNavigationControllerFactory : NavigationControllerFactory() {
         registerFragment(Screens.ColorFragmentScreen::class.java, ColorFragment::class.java)
 
         registerFragment(
-            Screens.Tab1NavigationController::class.java,
+            Screens.Tab1LineNavigationController::class.java,
             NavigationControllerFragment::class.java
         )
         registerFragment(
-            Screens.Tab2NavigationController::class.java,
+            Screens.Tab2LineNavigationController::class.java,
             NavigationControllerFragment::class.java
         )
         registerFragment(
-            Screens.Tab3NavigationController::class.java,
+            Screens.Tab3LineNavigationController::class.java,
             NavigationControllerFragment::class.java
         )
         registerFragment(
-            Screens.Tab4NavigationController::class.java,
+            Screens.Tab4LineNavigationController::class.java,
             NavigationControllerFragment::class.java
         )
         registerFragment(
-            Screens.Tab5NavigationController::class.java,
+            Screens.Tab5LineNavigationController::class.java,
             NavigationControllerFragment::class.java
         )
         registerFragment(

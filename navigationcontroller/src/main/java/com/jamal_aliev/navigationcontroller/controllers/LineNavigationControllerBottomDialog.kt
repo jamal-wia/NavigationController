@@ -1,8 +1,15 @@
 package com.jamal_aliev.navigationcontroller.controllers
 
+import android.app.Dialog
+import android.content.DialogInterface
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.view.ViewCompat
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentContainerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.jamal_aliev.navigationcontroller.R
 import com.jamal_aliev.navigationcontroller.core.NavigationControllerContract
 import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
@@ -11,7 +18,11 @@ import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvi
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
 import com.jamal_aliev.navigationcontroller.util.requireAppCompatActivity
 import com.jamal_aliev.navigationcontroller.util.requireNavigationContextChanger
-import me.aartikov.alligator.*
+import me.aartikov.alligator.AndroidNavigator
+import me.aartikov.alligator.DestinationType
+import me.aartikov.alligator.NavigationContext
+import me.aartikov.alligator.Screen
+import me.aartikov.alligator.TransitionType
 import me.aartikov.alligator.animations.AnimationData
 import me.aartikov.alligator.animations.SimpleTransitionAnimation
 import me.aartikov.alligator.animations.TransitionAnimation
@@ -21,22 +32,20 @@ import java.io.Serializable
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class NavigationControllerFragmentScreen(
-    val screens: List<Screen> = mutableListOf() // Нельзя использовать emptyList()
+open class LineNavigationControllerBottomDialogScreen(
+    val screens: List<Screen> = mutableListOf()
 ) : Screen, Serializable {
     override fun hashCode() = screens.hashCode()
     override fun equals(other: Any?): Boolean {
-        if (other === this) return true
-        return other is NavigationControllerFragmentScreen
-                && (other.screens === this.screens
-                || other.screens == this.screens)
+        return if (other !is LineNavigationControllerBottomDialogScreen) false
+        else other.screens == this.screens
     }
 }
 
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class NavigationControllerFragment : Fragment(R.layout.container),
+open class NavigationControllerBottomDialog : BottomSheetDialogFragment(),
     NavigationControllerContract,
     NavigationContextProvider,
     TransitionAnimationProvider {
@@ -46,8 +55,11 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
     private val fragmentNavigator get() = navigator.navigationContext?.fragmentNavigator
     private val screenResolver get() = navigator.screenResolver
 
+    private var containerId: Int = CONTAINER_ID_INIT_VALUE
     override fun getContainerId(): Int {
-        return R.id.container
+        if (containerId == CONTAINER_ID_INIT_VALUE)
+            throw IllegalStateException("containerId is incorrect")
+        return containerId
     }
 
     override fun canGoBack(): Boolean {
@@ -159,10 +171,23 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
         }
     }
 
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return object : BottomSheetDialog(requireContext(), theme) {
+            override fun onBackPressed() {
+                requireActivity().onBackPressed()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        containerId = savedInstanceState?.getInt(CONTAINER_ID_KEY, CONTAINER_ID_INIT_VALUE)
+            ?.takeIf { it != CONTAINER_ID_INIT_VALUE }
+            ?: View.generateViewId()
+
         if (savedInstanceState == null) {
-            val screen = screenResolver.getScreen<NavigationControllerFragmentScreen>(this)
+            val screen = screenResolver.getScreen<LineNavigationControllerBottomDialogScreen>(this)
             requireNavigationContextChanger().setNavigationContext(this)
             for ((index, item) in screen.screens.withIndex()) {
                 if (index == 0) navigator.reset(item)
@@ -179,9 +204,31 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
         }
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return FragmentContainerView(requireContext())
+            .apply {
+                id = containerId
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                )
+            }
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt(CONTAINER_ID_KEY, containerId)
         outState.putSerializable(ANIMATION_POOL_KEY, animationPool)
         super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+        (activity as? DialogInterface.OnDismissListener)
+            ?.onDismiss(dialog)
+        super.onDestroy()
     }
 
     private companion object {

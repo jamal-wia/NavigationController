@@ -140,9 +140,10 @@ abstract class SwitchNavigationControllerFragment : Fragment,
         if (wantToSwitch.id != currentScreen?.id) {
             requireNavigationContextChanger().setNavigationContext(this)
             navigator.switchTo(wantToSwitch)
-        } else if (currentScreen is NavigationControllerFragmentScreen) {
+        } else if (currentScreen is LineNavigationControllerFragmentScreen) {
             try {
-                val rootNavControllerScreen = currentScreen as NavigationControllerFragmentScreen
+                val rootNavControllerScreen =
+                    currentScreen as LineNavigationControllerFragmentScreen
                 val rootScreen = rootNavControllerScreen.screens.firstOrNull() ?: return
                 requireNavigationContextChanger().defaultNavigationContext()
                 navigator.goBackTo(rootScreen::class.java)
