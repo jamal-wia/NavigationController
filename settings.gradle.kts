@@ -14,6 +14,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "FNController"
+rootProject.name = "NavigationController"
 include(":app")
-include(":fncontroller")
+include(":navigationcontroller")
