@@ -6,7 +6,7 @@ import androidx.fragment.app.Fragment
 import com.jamal_aliev.navigationcontroller.R
 import com.jamal_aliev.navigationcontroller.core.NavigationControllerContract
 import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
-import com.jamal_aliev.navigationcontroller.core.animation.DisabledAnimationData
+import com.jamal_aliev.navigationcontroller.core.animation.ForwardBackAnimationData
 import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvider
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
 import com.jamal_aliev.navigationcontroller.util.requireAppCompatActivity
@@ -46,73 +46,54 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
     private val fragmentNavigator get() = navigator.navigationContext?.fragmentNavigator
     private val screenResolver get() = navigator.screenResolver
 
-    override fun getContainerId(): Int {
-        return R.id.container
-    }
+    override fun getContainerId(): Int = R.id.container
 
-    override fun canGoBack(): Boolean {
-        return fragmentNavigator?.canGoBack() == true
-    }
+    override fun canGoBack(): Boolean = fragmentNavigator?.canGoBack() == true
 
     override fun onNavigationUp(animationData: AnimationData?) {
         requireNavigationContextChanger().setNavigationContext(this)
         fragmentNavigator?.goBack(null, null)
     }
 
-    private var navigationContext: NavigationContext? = null
-    override fun getNavigationContext(): NavigationContext {
-        if (navigationContext == null) {
-            navigationContext =
-                NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
-                    .fragmentNavigation(childFragmentManager, getContainerId())
-                    .transitionAnimationProvider(this)
-                    .transitionListener { transitionType, destinationType,
-                                          screenClassFrom, screenClassTo ->
-                        if (transitionType == TransitionType.BACK) {
-                            requireNavigationContextChanger()
-                                .defaultNavigationContext()
-                        }
-                    }
-                    .build()
-        }
-        return navigationContext!!
+    override fun provideNavigationContext(): NavigationContext = navigationContext
+
+    private val navigationContext by lazy {
+        NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
+            .fragmentNavigation(childFragmentManager, getContainerId())
+            .transitionAnimationProvider(this)
+            .transitionListener { transitionType, destinationType,
+                                  screenClassFrom, screenClassTo ->
+                if (transitionType == TransitionType.BACK) {
+                    requireNavigationContextChanger()
+                        .defaultNavigationContext()
+                }
+            }
+            .build()
     }
 
     private var animationPool =
         hashMapOf<Pair<Class<out Screen>, Class<out Screen>>, AnimationData>()
 
-    private var forwardAnim: SimpleTransitionAnimation? = null
-        get() {
-            if (field == null) {
-                field = SimpleTransitionAnimation(
-                    R.anim.slide_in_right,
-                    R.anim.slide_out_left
-                )
-            }
-            return field
-        }
+    private val rightSlideAnim by lazy {
+        SimpleTransitionAnimation(
+            R.anim.slide_in_right,
+            R.anim.slide_out_left
+        )
+    }
 
-    private var backAnim: SimpleTransitionAnimation? = null
-        get() {
-            if (field == null) {
-                field = SimpleTransitionAnimation(
-                    R.anim.slide_in_left,
-                    R.anim.slide_out_right
-                )
-            }
-            return field
-        }
+    private val leftSlideAnim by lazy {
+        SimpleTransitionAnimation(
+            R.anim.slide_in_left,
+            R.anim.slide_out_right
+        )
+    }
 
-    private var appearFadeAnimation: SimpleTransitionAnimation? = null
-        get() {
-            if (field == null) {
-                field = SimpleTransitionAnimation(
-                    R.anim.appear,
-                    R.anim.fade
-                )
-            }
-            return field
-        }
+    private val appearFadeAnimation by lazy {
+        SimpleTransitionAnimation(
+            R.anim.appear,
+            R.anim.fade
+        )
+    }
 
     override fun getAnimation(
         transitionType: TransitionType,
@@ -121,38 +102,89 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
         screenClassTo: Class<out Screen>,
         animationData: AnimationData?
     ): TransitionAnimation {
-        var resultAnimationData = animationData
-
-        if (animationData == null) {
-            val savedAnimationData = animationPool[screenClassFrom to screenClassTo]
-                ?: animationPool[screenClassTo to screenClassFrom]
-            if (savedAnimationData != null) resultAnimationData = savedAnimationData
-        } else {
-            animationPool[screenClassFrom to screenClassTo] = animationData
-        }
-
         val ltr = ViewCompat.getLayoutDirection(requireView()) == ViewCompat.LAYOUT_DIRECTION_LTR
         val rtl = ViewCompat.getLayoutDirection(requireView()) == ViewCompat.LAYOUT_DIRECTION_RTL
 
-        return when {
-            resultAnimationData is DisabledAnimationData -> TransitionAnimation.DEFAULT
+        var resultAnimationData = animationData
+        resultAnimationData ?: if (transitionType == TransitionType.BACK) {
+            resultAnimationData = animationPool[screenClassTo to screenClassFrom]
+        } else if (transitionType == TransitionType.REPLACE) {
+            resultAnimationData = animationPool[screenClassTo to screenClassFrom]
+        }
 
-            resultAnimationData is AppearFadeAnimationData -> appearFadeAnimation!!
+        return when (resultAnimationData) {
 
-            transitionType == TransitionType.FORWARD && ltr-> forwardAnim!!
+            is AppearFadeAnimationData -> {
+                when (transitionType) {
+                    TransitionType.FORWARD -> {
+                        animationPool[screenClassFrom to screenClassTo] = resultAnimationData
+                    }
 
-            transitionType == TransitionType.FORWARD && rtl -> backAnim!!
+                    TransitionType.BACK -> {
+                        animationPool.remove(screenClassTo to screenClassFrom)
+                    }
 
-            transitionType == TransitionType.BACK && ltr -> {
-                animationPool.remove(screenClassFrom to screenClassTo)
-                animationPool.remove(screenClassTo to screenClassFrom)
-                backAnim!!
+                    TransitionType.REPLACE -> {
+                        // do nothing
+                    }
+
+                    TransitionType.RESET -> {
+                        animationPool.clear()
+                    }
+                }
+                appearFadeAnimation
             }
 
-            transitionType == TransitionType.BACK && rtl -> {
-                animationPool.remove(screenClassFrom to screenClassTo)
-                animationPool.remove(screenClassTo to screenClassFrom)
-                forwardAnim!!
+            is ForwardBackAnimationData -> {
+                when {
+                    transitionType == TransitionType.FORWARD
+                            && ltr -> {
+                        animationPool[screenClassFrom to screenClassTo] = resultAnimationData
+                        rightSlideAnim
+                    }
+
+                    transitionType == TransitionType.FORWARD
+                            && rtl -> {
+                        animationPool[screenClassFrom to screenClassTo] = resultAnimationData
+                        leftSlideAnim
+                    }
+
+                    transitionType == TransitionType.BACK
+                            && ltr -> {
+                        animationPool.remove(screenClassTo to screenClassFrom)
+                        leftSlideAnim
+                    }
+
+                    transitionType == TransitionType.BACK
+                            && rtl -> {
+                        animationPool.remove(screenClassTo to screenClassFrom)
+                        rightSlideAnim
+                    }
+
+                    transitionType == TransitionType.REPLACE
+                            && ltr -> {
+                        rightSlideAnim
+                    }
+
+                    transitionType == TransitionType.REPLACE
+                            && rtl -> {
+                        leftSlideAnim
+                    }
+
+                    transitionType == TransitionType.RESET
+                            && ltr -> {
+                        animationPool.clear()
+                        leftSlideAnim
+                    }
+
+                    transitionType == TransitionType.RESET
+                            && rtl -> {
+                        animationPool.clear()
+                        rightSlideAnim
+                    }
+
+                    else -> TransitionAnimation.DEFAULT
+                }
             }
 
             else -> TransitionAnimation.DEFAULT
@@ -186,7 +218,5 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
 
     private companion object {
         private const val ANIMATION_POOL_KEY = "animation_pool"
-        private const val CONTAINER_ID_INIT_VALUE = -1
-        private const val CONTAINER_ID_KEY = "container_id"
     }
 }

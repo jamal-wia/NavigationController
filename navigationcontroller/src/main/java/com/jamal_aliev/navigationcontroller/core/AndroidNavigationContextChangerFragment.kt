@@ -35,7 +35,6 @@ class AndroidNavigationContextChangerFragment : Fragment(R.layout.container),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         isFirstStart = savedInstanceState == null
-        if (isFirstStart) navigator.reset(LineNavigationControllerFragmentScreen())
         requireActivity().onBackPressedDispatcher
             .addCallback(
                 owner = this,
@@ -172,12 +171,12 @@ class AndroidNavigationContextChangerFragment : Fragment(R.layout.container),
         resetNavigationContext: Boolean = false,
     ) {
         if (navigationFragment is NavigationContextProvider) {
-            return navigator.bind(navigationFragment.getNavigationContext())
+            return navigator.bind(navigationFragment.provideNavigationContext())
         }
         val lastNavigationFragment =
             navigationFragment ?: getAnyLastNavigationFragment(childFragmentManager.fragments)
         if (lastNavigationFragment is NavigationContextProvider) {
-            return navigator.bind(lastNavigationFragment.getNavigationContext())
+            return navigator.bind(lastNavigationFragment.provideNavigationContext())
         }
         val navigationContext =
             NavigationContext.Builder(requireAppCompatActivity(), navigationFactory)
@@ -205,7 +204,7 @@ class AndroidNavigationContextChangerFragment : Fragment(R.layout.container),
         }
         when (lastNavigationFragment) {
             is NavigationScreenSwitcherProvider -> {
-                navigationContext.screenSwitcher(lastNavigationFragment.getScreenSwitcher())
+                navigationContext.screenSwitcher(lastNavigationFragment.provideScreenSwitcher())
                     .screenSwitchingListener { screenFrom, screenTo ->
                         if (getAnyLastNavigationFragment(childFragmentManager.fragments) != null) {
                             bindNavigationContext()

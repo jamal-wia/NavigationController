@@ -3,6 +3,7 @@ package com.jamal_aliev.navigationcontroller
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentContainerView
+import com.jamal_aliev.navigationcontroller.controllers.LineNavigationControllerFragmentScreen
 import com.jamal_aliev.navigationcontroller.core.AndroidNavigationContextChangerFragment
 import com.jamal_aliev.navigationcontroller.core.provider.OnNavigationUpProvider
 
@@ -21,6 +22,7 @@ class MainActivity : AppCompatActivity() {
                 .add(rootContainer.id, AndroidNavigationContextChangerFragment())
                 .commitNow()
 
+            App.navigator.reset(LineNavigationControllerFragmentScreen())
             App.navigator.reset(Screens.AppTabNavigationControllerScreen)
         }
     }

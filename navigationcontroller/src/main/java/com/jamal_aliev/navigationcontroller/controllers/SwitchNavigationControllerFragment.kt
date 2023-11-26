@@ -60,6 +60,24 @@ abstract class SwitchNavigationControllerFragment : Fragment,
         screenResolver.getScreen(this)
     }
 
+    private val mainScreen by lazy { args.screens.first() }
+
+    var currentScreen: SwitchScreen? = null // Нельзя использовать "= mainScreen"
+        private set
+
+    private val screens by lazy {
+        hashMapOf<Int, SwitchScreen>()
+            .apply {
+                args.screens.forEach {
+                    put(it.id, it)
+                }
+            }
+    }
+
+    private var idsBackStack = ArrayList<Int>() // ids табов
+
+    override fun provideScreenSwitcher(): ScreenSwitcher = screenSwitcher
+
     private val screenSwitcher by lazy {
         FragmentScreenSwitcher(
             /* navigationFactory = */ navigationFactory,
@@ -69,30 +87,21 @@ abstract class SwitchNavigationControllerFragment : Fragment,
         )
     }
 
-    override fun getScreenSwitcher(): ScreenSwitcher {
-        return screenSwitcher
+
+    override fun provideNavigationContext(): NavigationContext = navigationContext
+
+    private val navigationContext by lazy {
+        NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
+            .fragmentNavigation(childFragmentManager, getContainerId())
+            .screenSwitcher(provideScreenSwitcher())
+            .screenSwitchingListener { screenFrom, screenTo ->
+                onSwitchScreen(screenFrom as? SwitchScreen, screenTo as SwitchScreen)
+                requireNavigationContextChanger().defaultNavigationContext()
+            }
+            .build()
     }
 
-    private var navigationContext: NavigationContext? = null
-
-    override fun getNavigationContext(): NavigationContext {
-        if (navigationContext == null) {
-            navigationContext =
-                NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
-                    .fragmentNavigation(childFragmentManager, getContainerId())
-                    .screenSwitcher(getScreenSwitcher())
-                    .screenSwitchingListener { screenFrom, screenTo ->
-                        onSwitchScreen(screenFrom as? SwitchScreen, screenTo as SwitchScreen)
-                        requireNavigationContextChanger().defaultNavigationContext()
-                    }
-                    .build()
-        }
-        return navigationContext!!
-    }
-
-    override fun canGoBack(): Boolean {
-        return idsBackStack.size > 1 || currentScreen?.id != mainScreen.id
-    }
+    override fun canGoBack(): Boolean = idsBackStack.size > 1 || currentScreen?.id != mainScreen.id
 
     override fun onNavigationUp(animationData: AnimationData?) {
         if (idsBackStack.size > 1) {
@@ -107,19 +116,6 @@ abstract class SwitchNavigationControllerFragment : Fragment,
         }
     }
 
-    private val mainScreen by lazy { args.screens.first() }
-
-    var currentScreen: SwitchScreen? = null // Нельзя использовать "= mainScreen"
-        private set
-
-    private val screens by lazy {
-        hashMapOf<Int, SwitchScreen>()
-            .apply {
-                args.screens.forEach { put(it.id, it) }
-            }
-    }
-
-    private var idsBackStack = ArrayList<Int>() // ids табов
 
     /**
      * Обрабатывает переключение экрана
@@ -144,7 +140,7 @@ abstract class SwitchNavigationControllerFragment : Fragment,
             try {
                 val rootNavControllerScreen =
                     currentScreen as LineNavigationControllerFragmentScreen
-                val rootScreen = rootNavControllerScreen.screens.firstOrNull() ?: return
+                val rootScreen = rootNavControllerScreen.screens.first()
                 requireNavigationContextChanger().defaultNavigationContext()
                 navigator.goBackTo(rootScreen::class.java)
             } catch (e: ScreenNotFoundException) {
@@ -198,7 +194,9 @@ abstract class SwitchNavigationControllerFragment : Fragment,
     }
 
     override fun getAnimation(
-        screenFrom: Screen, screenTo: Screen, animationData: AnimationData?
+        screenFrom: Screen,
+        screenTo: Screen,
+        animationData: AnimationData?
     ): TransitionAnimation {
         return appearFadeAnimation
     }

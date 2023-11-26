@@ -6,5 +6,5 @@ import me.aartikov.alligator.NavigationContext
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
 fun interface NavigationContextProvider {
-    fun getNavigationContext(): NavigationContext
+    fun provideNavigationContext(): NavigationContext
 }

@@ -7,6 +7,7 @@ import android.widget.Button
 import androidx.annotation.ColorInt
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
+import com.jamal_aliev.navigationcontroller.core.animation.ForwardBackAnimationData
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
 import kotlin.random.Random
 
@@ -35,7 +36,10 @@ class ColorFragment : Fragment(R.layout.fragment_color) {
         rootContainer.setBackgroundColor(longToColorInt(args.color))
 
         nextButton.setOnClickListener {
-            navigator.goForward(Screens.ColorFragmentScreen(randomColor()))
+            navigator.goForward(
+                Screens.ColorFragmentScreen(randomColor()),
+                ForwardBackAnimationData()
+            )
         }
         backButton.setOnClickListener {
             requireActivity().onNavigateUp()
