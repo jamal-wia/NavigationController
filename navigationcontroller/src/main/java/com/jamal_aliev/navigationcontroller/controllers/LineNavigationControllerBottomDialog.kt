@@ -76,8 +76,7 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(),
             .build()
     }
 
-    private var animationPool =
-        hashMapOf<Pair<Class<out Screen>, Class<out Screen>>, AnimationData>()
+    private var animationPool = ArrayList<AnimationData>()
 
     private val rightSlideAnim by lazy {
         SimpleTransitionAnimation(
@@ -112,9 +111,9 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(),
 
         var resultAnimationData = animationData
         resultAnimationData ?: if (transitionType == TransitionType.BACK) {
-            resultAnimationData = animationPool[screenClassTo to screenClassFrom]
+            resultAnimationData = animationPool.lastOrNull()
         } else if (transitionType == TransitionType.REPLACE) {
-            resultAnimationData = animationPool[screenClassTo to screenClassFrom]
+            resultAnimationData = animationPool.lastOrNull()
         }
 
         return when (resultAnimationData) {
@@ -122,11 +121,11 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(),
             is AppearFadeAnimationData -> {
                 when (transitionType) {
                     TransitionType.FORWARD -> {
-                        animationPool[screenClassFrom to screenClassTo] = resultAnimationData
+                        animationPool.add(resultAnimationData)
                     }
 
                     TransitionType.BACK -> {
-                        animationPool.remove(screenClassTo to screenClassFrom)
+                        animationPool.removeLastOrNull()
                     }
 
                     TransitionType.REPLACE -> {
@@ -144,25 +143,25 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(),
                 when {
                     transitionType == TransitionType.FORWARD
                             && ltr -> {
-                        animationPool[screenClassFrom to screenClassTo] = resultAnimationData
+                        animationPool.add(resultAnimationData)
                         rightSlideAnim
                     }
 
                     transitionType == TransitionType.FORWARD
                             && rtl -> {
-                        animationPool[screenClassFrom to screenClassTo] = resultAnimationData
+                        animationPool.add(resultAnimationData)
                         leftSlideAnim
                     }
 
                     transitionType == TransitionType.BACK
                             && ltr -> {
-                        animationPool.remove(screenClassTo to screenClassFrom)
+                        animationPool.removeLastOrNull()
                         leftSlideAnim
                     }
 
                     transitionType == TransitionType.BACK
                             && rtl -> {
-                        animationPool.remove(screenClassTo to screenClassFrom)
+                        animationPool.removeLastOrNull()
                         rightSlideAnim
                     }
 
@@ -215,12 +214,8 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(),
             }
         } else if (animationPool.isEmpty()) {
             val serializableValue = savedInstanceState.getSerializable(ANIMATION_POOL_KEY)
-            animationPool = if (serializableValue != null && serializableValue is HashMap<*, *>) {
-                @Suppress("UNCHECKED_CAST")
-                serializableValue as HashMap<Pair<Class<out Screen>, Class<out Screen>>, AnimationData>
-            } else {
-                HashMap()
-            }
+            animationPool = (serializableValue as? ArrayList<AnimationData>)
+                ?: ArrayList()
         }
     }
 
