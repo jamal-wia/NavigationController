@@ -206,7 +206,7 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) {
-            val screen = screenResolver.getScreen<LineNavigationControllerFragmentScreen>(this)
+            val screen = screenResolver.getScreen<LineNavigationControllerBottomDialogScreen>(this)
             requireNavigationContextChanger().setNavigationContext(this)
             for ((index, item) in screen.screens.withIndex()) {
                 if (index == 0) navigator.reset(item)

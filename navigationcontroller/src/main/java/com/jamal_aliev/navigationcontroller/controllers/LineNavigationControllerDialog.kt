@@ -207,7 +207,7 @@ open class NavigationControllerDialog : AppCompatDialogFragment(R.layout.contain
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) {
-            val screen = screenResolver.getScreen<LineNavigationControllerFragmentScreen>(this)
+            val screen = screenResolver.getScreen<LineNavigationControllerDialogScreen>(this)
             requireNavigationContextChanger().setNavigationContext(this)
             for ((index, item) in screen.screens.withIndex()) {
                 if (index == 0) navigator.reset(item)
