@@ -92,7 +92,6 @@ abstract class SwitchNavigationControllerFragment : Fragment,
 
     private val navigationContext by lazy {
         NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
-            .fragmentNavigation(childFragmentManager, getContainerId())
             .screenSwitcher(provideScreenSwitcher())
             .screenSwitchingListener { screenFrom, screenTo ->
                 onSwitchScreen(screenFrom as? SwitchScreen, screenTo as SwitchScreen)
