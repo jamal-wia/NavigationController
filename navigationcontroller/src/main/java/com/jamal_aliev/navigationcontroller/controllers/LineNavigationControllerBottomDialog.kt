@@ -41,7 +41,7 @@ open class LineNavigationControllerBottomDialogScreen(
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class NavigationControllerBottomDialog : BottomSheetDialogFragment(),
+open class NavigationControllerBottomDialog : BottomSheetDialogFragment(R.layout.container),
     NavigationControllerContract,
     NavigationContextProvider,
     TransitionAnimationProvider {

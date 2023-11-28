@@ -7,8 +7,11 @@ import android.widget.Button
 import androidx.annotation.ColorInt
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.fragment.app.Fragment
+import com.jamal_aliev.navigationcontroller.controllers.LineNavigationControllerBottomDialogScreen
+import com.jamal_aliev.navigationcontroller.controllers.LineNavigationControllerDialogScreen
 import com.jamal_aliev.navigationcontroller.core.animation.ForwardBackAnimationData
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
+import com.jamal_aliev.navigationcontroller.util.requireNavigationContextChanger
 import kotlin.random.Random
 
 class ColorFragment : Fragment(R.layout.fragment_color) {
@@ -21,6 +24,9 @@ class ColorFragment : Fragment(R.layout.fragment_color) {
 
     private lateinit var rootContainer: ConstraintLayout
     private lateinit var nextButton: Button
+    private lateinit var nextAwayButton: Button
+    private lateinit var nextDialogButton: Button
+    private lateinit var nextBottomDialogButton: Button
     private lateinit var backButton: Button
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -31,15 +37,36 @@ class ColorFragment : Fragment(R.layout.fragment_color) {
     private fun setupView(view: View) {
         rootContainer = view.findViewById(R.id.container)
         backButton = view.findViewById(R.id.back_button)
+        nextAwayButton = view.findViewById(R.id.next_away)
+        nextDialogButton = view.findViewById(R.id.next_dialog)
+        nextBottomDialogButton = view.findViewById(R.id.next_bottom_dialog)
         nextButton = view.findViewById(R.id.next_button)
 
         rootContainer.setBackgroundColor(longToColorInt(args.color))
 
         nextButton.setOnClickListener {
+            requireNavigationContextChanger()
+                .setLastNavigationContext(this)
             navigator.goForward(
                 Screens.ColorFragmentScreen(randomColor()),
                 ForwardBackAnimationData()
             )
+        }
+        nextAwayButton.setOnClickListener {
+            requireNavigationContextChanger()
+                .setFirstNavigationContext()
+            navigator.goForward(
+                Screens.ColorFragmentScreen(randomColor()),
+                ForwardBackAnimationData()
+            )
+        }
+        nextDialogButton.setOnClickListener {
+            navigator.goForward(LineNavigationControllerDialogScreen())
+            navigator.goForward(Screens.ColorFragmentScreen(randomColor()))
+        }
+        nextBottomDialogButton.setOnClickListener {
+            navigator.goForward(LineNavigationControllerBottomDialogScreen())
+            navigator.goForward(Screens.ColorFragmentScreen(randomColor()))
         }
         backButton.setOnClickListener {
             requireActivity().onNavigateUp()
