@@ -21,6 +21,7 @@ class MainActivity : AppCompatActivity() {
 
             lifecycleScope.launchWhenResumed {
                 App.navigator.goForward(LineNavigationControllerFragmentScreen())
+                App.navigator.goForward(Screens.AppTabNavigationControllerScreen)
                 App.navigator.goForward(Screens.ColorFragmentScreen(0x000FFF))
             }
         }

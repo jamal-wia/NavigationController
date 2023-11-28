@@ -54,7 +54,9 @@ open class NavigationControllerDialog : AppCompatDialogFragment(R.layout.contain
 
     override fun getContainerId(): Int = R.id.container
 
-    override fun canGoBack(): Boolean = fragmentNavigator?.canGoBack() == true
+    override fun canGoBack(): Boolean {
+        return fragmentNavigator?.canGoBack() == true
+    }
 
     override fun onNavigationUp(animationData: AnimationData?) {
         requireNavigationContextChanger().setNavigationContext(this)

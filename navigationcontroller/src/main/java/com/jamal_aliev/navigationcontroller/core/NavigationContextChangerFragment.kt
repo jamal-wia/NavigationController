@@ -147,8 +147,15 @@ class NavigationContextChangerFragment : Fragment(R.layout.container),
         predicate: (Fragment) -> Boolean
     ): NavigationContextProvider? {
         fragments.find {
-            it is NavigationContextProvider && predicate(it)
-        }?.let { return it as NavigationContextProvider }
+            it is NavigationContextProvider
+                    && predicate(it)
+        }?.let { fragment ->
+            return (fragment.takeIf { it != this } as? NavigationContextProvider)
+                ?: searchFirstNavigationContextProvider(
+                    fragments = fragment.childFragmentManager.fragments,
+                    predicate = predicate
+                )
+        }
 
         for (item in fragments) {
             return searchFirstNavigationContextProvider(
@@ -169,6 +176,12 @@ class NavigationContextChangerFragment : Fragment(R.layout.container),
                 it is NavigationContextProvider
                         && predicate(it)
             } ?: return null
+        if (navigationContextProviderFragment == this) {
+            searchLastNavigationContextProvider(
+                fragments = navigationContextProviderFragment.childFragmentManager.fragments,
+                predicate = predicate
+            )
+        }
 
         navigationContextProviderFragment.childFragmentManager.fragments
             .find {
@@ -189,7 +202,7 @@ class NavigationContextChangerFragment : Fragment(R.layout.container),
         fragment: Fragment,
         predicate: (Fragment) -> Boolean
     ): NavigationContextProvider? {
-        return (fragment.takeIf {
+        val navigationContextProvider = (fragment.takeIf {
             it is NavigationContextProvider
                     && predicate(it)
         } ?: fragment.parentFragment?.let {
@@ -198,6 +211,7 @@ class NavigationContextChangerFragment : Fragment(R.layout.container),
                 predicate = predicate
             )
         }) as? NavigationContextProvider
+        return navigationContextProvider.takeIf { it != this }
     }
 
     private fun getCanGoBackLastFragment(lastNavigationFragment: Fragment): Fragment? {
