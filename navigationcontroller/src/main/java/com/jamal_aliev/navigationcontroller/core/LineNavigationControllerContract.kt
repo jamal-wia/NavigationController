@@ -9,7 +9,9 @@ import me.aartikov.alligator.TransitionType
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-interface NavigationControllerContract : ContainerProvider, OnNavigationUpProvider {
+interface LineNavigationControllerContract : NavigationController,
+    ContainerProvider,
+    OnNavigationUpProvider {
     fun onTransactionScreen(
         transitionType: TransitionType,
         destinationType: DestinationType,

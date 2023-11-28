@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
 import com.jamal_aliev.navigationcontroller.R
-import com.jamal_aliev.navigationcontroller.core.NavigationControllerContract
+import com.jamal_aliev.navigationcontroller.core.LineNavigationControllerContract
 import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
 import com.jamal_aliev.navigationcontroller.core.animation.ForwardBackAnimationData
 import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvider
@@ -41,7 +41,7 @@ open class LineNavigationControllerFragmentScreen(
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
 open class NavigationControllerFragment : Fragment(R.layout.container),
-    NavigationControllerContract,
+    LineNavigationControllerContract,
     NavigationContextProvider,
     TransitionAnimationProvider {
 
@@ -69,7 +69,7 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
                                   screenClassFrom, screenClassTo ->
                 if (transitionType == TransitionType.BACK) {
                     requireNavigationContextChanger()
-                        .defaultNavigationContext()
+                        .setNavigationContextAfter(this) { true }
                 }
             }
             .build()

@@ -95,7 +95,8 @@ abstract class SwitchNavigationControllerFragment : Fragment,
             .screenSwitcher(provideScreenSwitcher())
             .screenSwitchingListener { screenFrom, screenTo ->
                 onSwitchScreen(screenFrom as? SwitchScreen, screenTo as SwitchScreen)
-                requireNavigationContextChanger().defaultNavigationContext()
+                requireNavigationContextChanger()
+                    .setNavigationContextAfter(this) { true }
             }
             .build()
     }
@@ -137,10 +138,12 @@ abstract class SwitchNavigationControllerFragment : Fragment,
             navigator.switchTo(wantToSwitch)
         } else if (currentScreen is LineNavigationControllerFragmentScreen) {
             try {
-                val rootNavControllerScreen =
-                    currentScreen as LineNavigationControllerFragmentScreen
+                val rootNavControllerScreen = currentScreen
+                        as LineNavigationControllerFragmentScreen
                 val rootScreen = rootNavControllerScreen.screens.first()
-                requireNavigationContextChanger().defaultNavigationContext()
+
+                requireNavigationContextChanger()
+                    .setNavigationContextAfter(this) { true }
                 navigator.goBackTo(rootScreen::class.java)
             } catch (e: ScreenNotFoundException) {
                 // goBackTo может фантомно выдать ошибку

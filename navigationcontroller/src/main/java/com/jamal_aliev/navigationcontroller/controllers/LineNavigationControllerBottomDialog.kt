@@ -7,7 +7,7 @@ import androidx.core.view.ViewCompat
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.jamal_aliev.navigationcontroller.R
-import com.jamal_aliev.navigationcontroller.core.NavigationControllerContract
+import com.jamal_aliev.navigationcontroller.core.LineNavigationControllerContract
 import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
 import com.jamal_aliev.navigationcontroller.core.animation.ForwardBackAnimationData
 import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvider
@@ -42,7 +42,7 @@ open class LineNavigationControllerBottomDialogScreen(
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
 open class NavigationControllerBottomDialog : BottomSheetDialogFragment(R.layout.container),
-    NavigationControllerContract,
+    LineNavigationControllerContract,
     NavigationContextProvider,
     TransitionAnimationProvider {
 
@@ -70,7 +70,7 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(R.layout
                                   screenClassFrom, screenClassTo ->
                 if (transitionType == TransitionType.BACK) {
                     requireNavigationContextChanger()
-                        .defaultNavigationContext()
+                        .setNavigationContextAfter(this) { true }
                 }
             }
             .build()

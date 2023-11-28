@@ -9,6 +9,7 @@ import com.jamal_aliev.navigationcontroller.core.screen.SwitchScreen
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
 interface SwitchNavigationControllerContract :
+    NavigationController,
     ContainerProvider,
     OnNavigationUpProvider,
     NavigationScreenSwitcherProvider {

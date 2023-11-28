@@ -10,5 +10,4 @@ fun Fragment.requireNavigationContextChanger(): NavigationContextChanger {
             .first { it is NavigationContextChanger } as NavigationContextChanger
 }
 
-internal fun Fragment.requireAppCompatActivity() =
-    requireActivity() as AppCompatActivity
+internal fun Fragment.requireAppCompatActivity() = requireActivity() as AppCompatActivity

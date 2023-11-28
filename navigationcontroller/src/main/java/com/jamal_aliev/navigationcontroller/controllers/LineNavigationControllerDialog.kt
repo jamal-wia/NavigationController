@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatDialog
 import androidx.appcompat.app.AppCompatDialogFragment
 import androidx.core.view.ViewCompat
 import com.jamal_aliev.navigationcontroller.R
-import com.jamal_aliev.navigationcontroller.core.NavigationControllerContract
+import com.jamal_aliev.navigationcontroller.core.LineNavigationControllerContract
 import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
 import com.jamal_aliev.navigationcontroller.core.animation.ForwardBackAnimationData
 import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvider
@@ -43,7 +43,7 @@ open class LineNavigationControllerDialogScreen(
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
 open class NavigationControllerDialog : AppCompatDialogFragment(R.layout.container),
-    NavigationControllerContract,
+    LineNavigationControllerContract,
     NavigationContextProvider,
     TransitionAnimationProvider {
 
@@ -71,7 +71,7 @@ open class NavigationControllerDialog : AppCompatDialogFragment(R.layout.contain
                                   screenClassFrom, screenClassTo ->
                 if (transitionType == TransitionType.BACK) {
                     requireNavigationContextChanger()
-                        .defaultNavigationContext()
+                        .setNavigationContextAfter(this) { true }
                 }
             }
             .build()

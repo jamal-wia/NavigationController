@@ -46,7 +46,7 @@ class ColorFragment : Fragment(R.layout.fragment_color) {
 
         nextButton.setOnClickListener {
             requireNavigationContextChanger()
-                .setLastNavigationContext(this)
+                .setNavigationContextBefore(this) { true }
             navigator.goForward(
                 Screens.ColorFragmentScreen(randomColor()),
                 ForwardBackAnimationData()
@@ -54,7 +54,7 @@ class ColorFragment : Fragment(R.layout.fragment_color) {
         }
         nextAwayButton.setOnClickListener {
             requireNavigationContextChanger()
-                .setFirstNavigationContext()
+                .setNavigationContextAfter(null) { true }
             navigator.goForward(
                 Screens.ColorFragmentScreen(randomColor()),
                 ForwardBackAnimationData()

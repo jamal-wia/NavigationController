@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
-import com.jamal_aliev.navigationcontroller.core.NavigationControllerContract
+import com.jamal_aliev.navigationcontroller.core.LineNavigationControllerContract
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
 import me.aartikov.alligator.AndroidNavigator
 import me.aartikov.alligator.Screen
@@ -31,7 +31,7 @@ open class WebViewNavigationControllerFragmentScreen(
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
 open class WebViewNavigationControllerFragment : Fragment,
-    NavigationControllerContract {
+    LineNavigationControllerContract {
 
     constructor() : super()
     constructor(@LayoutRes idRes: Int) : super(idRes)
