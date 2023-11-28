@@ -52,11 +52,14 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
 
     override fun getContainerId(): Int = R.id.container
 
-    override fun canGoBack(): Boolean = fragmentNavigator?.canGoBack() == true
+    override fun canGoBack(): Boolean {
+        requireNavigationContextChanger().setNavigationContext(this)
+        return fragmentNavigator?.canGoBack() == true
+    }
 
     override fun onNavigationUp(animationData: AnimationData?) {
         requireNavigationContextChanger().setNavigationContext(this)
-        fragmentNavigator?.goBack(null, null)
+        fragmentNavigator?.goBack(null, animationData)
     }
 
     override fun provideNavigationContext(): NavigationContext = navigationContext

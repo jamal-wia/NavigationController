@@ -55,12 +55,13 @@ open class NavigationControllerDialog : AppCompatDialogFragment(R.layout.contain
     override fun getContainerId(): Int = R.id.container
 
     override fun canGoBack(): Boolean {
+        requireNavigationContextChanger().setNavigationContext(this)
         return fragmentNavigator?.canGoBack() == true
     }
 
     override fun onNavigationUp(animationData: AnimationData?) {
         requireNavigationContextChanger().setNavigationContext(this)
-        fragmentNavigator?.goBack(null, null)
+        fragmentNavigator?.goBack(null, animationData)
     }
 
     override fun provideNavigationContext(): NavigationContext = navigationContext
