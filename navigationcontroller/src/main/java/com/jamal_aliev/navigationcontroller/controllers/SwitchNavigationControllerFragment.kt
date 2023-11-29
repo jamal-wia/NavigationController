@@ -43,12 +43,12 @@ open class SwitchNavigationControllerFragmentScreen(
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-abstract class SwitchNavigationControllerFragment : Fragment,
+open class SwitchNavigationControllerFragment : Fragment,
     SwitchNavigationControllerContract,
     NavigationContextProvider,
     FragmentScreenSwitcher.AnimationProvider {
 
-    constructor() : super()
+    constructor() : super(R.layout.container)
     constructor(@LayoutRes layoutRes: Int) : super(layoutRes)
 
     private val navigator: AndroidNavigator get() = NavigationControllerHolder.requireNavigator()
@@ -78,6 +78,10 @@ abstract class SwitchNavigationControllerFragment : Fragment,
 
     override fun provideScreenSwitcher(): ScreenSwitcher = screenSwitcher
 
+    override fun provideNavigationContext(): NavigationContext = navigationContext
+
+    override fun getContainerId(): Int = R.id.container
+
     private val screenSwitcher by lazy {
         FragmentScreenSwitcher(
             /* navigationFactory = */ navigationFactory,
@@ -86,9 +90,6 @@ abstract class SwitchNavigationControllerFragment : Fragment,
             /* animationProvider = */ this
         )
     }
-
-
-    override fun provideNavigationContext(): NavigationContext = navigationContext
 
     private val navigationContext by lazy {
         NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
