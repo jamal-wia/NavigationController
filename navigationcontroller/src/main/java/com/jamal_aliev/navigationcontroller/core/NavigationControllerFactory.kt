@@ -1,5 +1,7 @@
 package com.jamal_aliev.navigationcontroller.core
 
+import com.jamal_aliev.navigationcontroller.controllers.BottomNavigationControllerFragment
+import com.jamal_aliev.navigationcontroller.controllers.BottomNavigationControllerFragmentScreen
 import com.jamal_aliev.navigationcontroller.controllers.LineNavigationControllerBottomDialogScreen
 import com.jamal_aliev.navigationcontroller.controllers.LineNavigationControllerDialogScreen
 import com.jamal_aliev.navigationcontroller.controllers.LineNavigationControllerFragmentScreen
@@ -8,8 +10,6 @@ import com.jamal_aliev.navigationcontroller.controllers.NavigationControllerDial
 import com.jamal_aliev.navigationcontroller.controllers.NavigationControllerFragment
 import com.jamal_aliev.navigationcontroller.controllers.SwitchNavigationControllerFragment
 import com.jamal_aliev.navigationcontroller.controllers.SwitchNavigationControllerFragmentScreen
-import com.jamal_aliev.navigationcontroller.controllers.TabNavigationControllerFragment
-import com.jamal_aliev.navigationcontroller.controllers.TabNavigationControllerFragmentScreen
 import com.jamal_aliev.navigationcontroller.controllers.WebViewNavigationControllerFragment
 import com.jamal_aliev.navigationcontroller.controllers.WebViewNavigationControllerFragmentScreen
 import me.aartikov.alligator.navigationfactories.RegistryNavigationFactory
@@ -33,8 +33,8 @@ open class NavigationControllerFactory : RegistryNavigationFactory() {
             SwitchNavigationControllerFragment::class.java
         )
         registerFragment(
-            TabNavigationControllerFragmentScreen::class.java,
-            TabNavigationControllerFragment::class.java
+            BottomNavigationControllerFragmentScreen::class.java,
+            BottomNavigationControllerFragment::class.java
         )
         registerFragment(
             WebViewNavigationControllerFragmentScreen::class.java,

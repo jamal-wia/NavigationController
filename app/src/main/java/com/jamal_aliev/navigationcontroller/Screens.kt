@@ -1,7 +1,7 @@
 package com.jamal_aliev.navigationcontroller
 
+import com.jamal_aliev.navigationcontroller.controllers.BottomNavigationControllerFragmentScreen
 import com.jamal_aliev.navigationcontroller.controllers.LineNavigationControllerFragmentScreen
-import com.jamal_aliev.navigationcontroller.controllers.TabNavigationControllerFragmentScreen
 import com.jamal_aliev.navigationcontroller.core.screen.SwitchScreen
 import me.aartikov.alligator.Screen
 import java.io.Serializable
@@ -40,7 +40,7 @@ object Screens {
         override val id: Int = R.id.item5
     }
 
-    object AppTabNavigationControllerScreen : TabNavigationControllerFragmentScreen(
+    val AppBottomNavigationControllerScreen = BottomNavigationControllerFragmentScreen(
         menuId = R.menu.main_navigation,
         screens = listOf(
             Tab1LineNavigationController,

@@ -28,7 +28,9 @@ import java.io.Serializable
 open class LineNavigationControllerFragmentScreen(
     val screens: List<Screen> = mutableListOf() // Нельзя использовать emptyList()
 ) : Screen, Serializable {
+
     override fun hashCode() = screens.hashCode()
+
     override fun equals(other: Any?): Boolean {
         if (other === this) return true
         return other is LineNavigationControllerFragmentScreen

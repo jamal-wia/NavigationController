@@ -27,9 +27,5 @@ class AppRegistryNavigationControllerFactory : NavigationControllerFactory() {
             Screens.Tab5LineNavigationController::class.java,
             NavigationControllerFragment::class.java
         )
-        registerFragment(
-            Screens.AppTabNavigationControllerScreen::class.java,
-            AppTabNavigationControllerFragment::class.java
-        )
     }
 }
