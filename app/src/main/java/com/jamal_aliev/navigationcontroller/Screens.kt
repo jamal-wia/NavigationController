@@ -42,12 +42,11 @@ object Screens {
 
     val AppBottomNavigationControllerScreen = BottomNavigationControllerFragmentScreen(
         menuId = R.menu.main_navigation,
-        screens = listOf(
-            Tab1LineNavigationController,
-            Tab2LineNavigationController,
-            Tab3LineNavigationController,
-            Tab4LineNavigationController,
-            Tab5LineNavigationController
-        )
+        rootScreen = Tab1LineNavigationController,
+        screen1 = Tab1LineNavigationController,
+        screen2 = Tab2LineNavigationController,
+        screen3 = Tab3LineNavigationController,
+        screen4 = Tab4LineNavigationController,
+        screen5 = Tab5LineNavigationController
     )
 }

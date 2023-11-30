@@ -58,9 +58,9 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(R.layout
         return fragmentNavigator?.canGoBack() == true
     }
 
-    override fun onNavigationUp(animationData: AnimationData?) {
+    override fun onNavigationUp(animationData: AnimationData?): Boolean {
         requireNavigationContextChanger().setNavigationContext(this)
-        fragmentNavigator?.goBack(null, animationData)
+        return fragmentNavigator?.goBack(null, animationData) == Unit
     }
 
     override fun provideNavigationContext(): NavigationContext = navigationContext

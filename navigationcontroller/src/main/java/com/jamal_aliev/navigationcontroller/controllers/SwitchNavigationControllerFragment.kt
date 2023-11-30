@@ -18,7 +18,6 @@ import me.aartikov.alligator.ScreenResolver
 import me.aartikov.alligator.animations.AnimationData
 import me.aartikov.alligator.animations.SimpleTransitionAnimation
 import me.aartikov.alligator.animations.TransitionAnimation
-import me.aartikov.alligator.exceptions.ScreenNotFoundException
 import me.aartikov.alligator.navigationfactories.NavigationFactory
 import me.aartikov.alligator.screenswitchers.FragmentScreenSwitcher
 import me.aartikov.alligator.screenswitchers.ScreenSwitcher
@@ -27,18 +26,7 @@ import java.io.Serializable
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class SwitchNavigationControllerFragmentScreen(
-    open val screens: List<SwitchScreen> = ArrayList()
-) : Screen, Serializable {
-
-    override fun hashCode() = screens.hashCode()
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        return other is SwitchNavigationControllerFragmentScreen
-                && (this.screens === other.screens || this.screens == other.screens)
-    }
-}
+open class SwitchNavigationControllerFragmentScreen : Screen, Serializable
 
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
@@ -56,25 +44,10 @@ open class SwitchNavigationControllerFragment : Fragment,
     private val screenResolver: ScreenResolver get() = navigator.screenResolver
     private val navigationFactory: NavigationFactory get() = navigator.navigationFactory
 
-    private val args: SwitchNavigationControllerFragmentScreen by lazy {
-        screenResolver.getScreen(this)
-    }
 
-    private val mainScreen by lazy { args.screens.first() }
-
-    var currentScreen: SwitchScreen? = null // Нельзя использовать "= mainScreen"
+    protected val currentScreen get() = backStack.last()
+    protected var backStack = ArrayList<SwitchScreen>()
         private set
-
-    private val screens by lazy {
-        hashMapOf<Int, SwitchScreen>()
-            .apply {
-                args.screens.forEach {
-                    put(it.id, it)
-                }
-            }
-    }
-
-    private var idsBackStack = ArrayList<Int>() // ids табов
 
     override fun provideScreenSwitcher(): ScreenSwitcher = screenSwitcher
 
@@ -102,90 +75,43 @@ open class SwitchNavigationControllerFragment : Fragment,
             .build()
     }
 
-    override fun canGoBack(): Boolean = idsBackStack.size > 1 || currentScreen?.id != mainScreen.id
+    override fun canGoBack(): Boolean = backStack.size > 1
 
-    override fun onNavigationUp(animationData: AnimationData?) {
-        if (idsBackStack.size > 1) {
-            idsBackStack.removeLast()
-            val backScreen = screens.getValue(idsBackStack.last())
-            requireNavigationContextChanger().setNavigationContext(this)
-            navigator.switchTo(backScreen)
-        } else if (currentScreen?.id != mainScreen.id) {
-            idsBackStack.removeLast()
-            requireNavigationContextChanger().setNavigationContext(this)
-            navigator.switchTo(mainScreen)
-        }
+    override fun onNavigationUp(animationData: AnimationData?): Boolean {
+        backStack.removeLast()
+        requireNavigationContextChanger().setNavigationContext(this)
+        return navigator.switchTo(backStack.last(), animationData) == Unit
     }
-
 
     /**
      * Обрабатывает переключение экрана
      * */
     override fun onSwitchScreen(screenFrom: SwitchScreen?, screenTo: SwitchScreen) {
-        val index = idsBackStack.indexOf(screenTo.id)
-        if (index != -1) idsBackStack.removeAt(index)
+        val index = backStack.indexOfFirst { it.id == screenTo.id }
+        if (index != -1) backStack.removeAt(index)
 
-        idsBackStack.add(screenTo.id)
-        currentScreen = screenTo
-    }
-
-    /**
-     * Выполняет переключение экрана
-     * */
-    open fun onScreenSelected(screenId: Int) {
-        val wantToSwitch = screens.getValue(screenId)
-        if (wantToSwitch.id != currentScreen?.id) {
-            requireNavigationContextChanger().setNavigationContext(this)
-            navigator.switchTo(wantToSwitch)
-        } else if (currentScreen is LineNavigationControllerFragmentScreen) {
-            try {
-                val rootNavControllerScreen = currentScreen
-                        as LineNavigationControllerFragmentScreen
-                val rootScreen = rootNavControllerScreen.screens.first()
-
-                requireNavigationContextChanger()
-                    .setNavigationContextAfter(this) { true }
-                navigator.goBackTo(rootScreen::class.java)
-            } catch (e: ScreenNotFoundException) {
-                // goBackTo может фантомно выдать ошибку
-            } catch (e: Exception) {
-                requireNavigationContextChanger().setNavigationContext(this)
-                navigator.switchTo(mainScreen)
-            }
-        }
+        backStack.add(screenTo)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        currentScreen = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            savedInstanceState?.getSerializable(CURRENT_SCREEN_KEY, SwitchScreen::class.java)
-                ?: mainScreen
-        } else {
-            savedInstanceState?.getSerializable(CURRENT_SCREEN_KEY).run {
-                this ?: return@run mainScreen
-                this as SwitchScreen
-            }
-        }
-
-        idsBackStack = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        backStack = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             savedInstanceState?.getSerializable(
                 BACK_STACK_KEY, ArrayList::class.java
-            ) as? ArrayList<Int> ?: idsBackStack
+            ) as? ArrayList<SwitchScreen> ?: backStack
         } else {
-            savedInstanceState?.getSerializable(BACK_STACK_KEY) as? ArrayList<Int>
-                ?: idsBackStack
+            savedInstanceState?.getSerializable(BACK_STACK_KEY)
+                    as? ArrayList<SwitchScreen> ?: backStack
         }
 
         if (savedInstanceState == null) {
             requireNavigationContextChanger().setNavigationContext(this)
-            navigator.switchTo(mainScreen)
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putSerializable(CURRENT_SCREEN_KEY, currentScreen)
-        outState.putSerializable(BACK_STACK_KEY, idsBackStack)
+        outState.putSerializable(BACK_STACK_KEY, backStack)
         super.onSaveInstanceState(outState)
     }
 
@@ -205,7 +131,6 @@ open class SwitchNavigationControllerFragment : Fragment,
     }
 
     private companion object {
-        private const val CURRENT_SCREEN_KEY = "current_screen"
         private const val BACK_STACK_KEY = "back_stack"
     }
 }

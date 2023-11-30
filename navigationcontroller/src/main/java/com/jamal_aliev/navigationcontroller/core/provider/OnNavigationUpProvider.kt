@@ -7,5 +7,5 @@ import me.aartikov.alligator.animations.AnimationData
  */
 interface OnNavigationUpProvider {
     fun canGoBack(): Boolean = false
-    fun onNavigationUp(animationData: AnimationData? = null)
+    fun onNavigationUp(animationData: AnimationData? = null): Boolean
 }

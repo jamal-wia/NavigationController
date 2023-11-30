@@ -46,8 +46,8 @@ open class WebViewNavigationControllerFragment : Fragment,
         return (requireView() as WebView).run { canGoBack() }
     }
 
-    override fun onNavigationUp(animationData: AnimationData?) {
-        (requireView() as WebView).goBack()
+    override fun onNavigationUp(animationData: AnimationData?): Boolean {
+        return (requireView() as WebView).goBack() == Unit
     }
 
     private var containerId: Int = CONTAINER_ID_INIT_VALUE

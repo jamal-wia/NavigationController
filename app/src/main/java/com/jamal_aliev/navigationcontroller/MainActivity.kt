@@ -22,7 +22,6 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launchWhenResumed {
                 App.navigator.goForward(LineNavigationControllerFragmentScreen())
                 App.navigator.goForward(Screens.AppBottomNavigationControllerScreen)
-                App.navigator.goForward(Screens.ColorFragmentScreen(0x000FFF))
             }
         }
     }
@@ -30,7 +29,7 @@ class MainActivity : AppCompatActivity() {
     override fun onNavigateUp(): Boolean {
         return (supportFragmentManager.fragments.first { it is NavigationContextChanger }
                 as OnNavigationUpProvider)
-            .onNavigationUp() == Unit
+            .onNavigationUp()
     }
 
 }

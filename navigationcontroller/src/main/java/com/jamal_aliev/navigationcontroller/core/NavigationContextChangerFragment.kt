@@ -59,23 +59,25 @@ class NavigationContextChangerFragment : Fragment(R.layout.container),
 
     override fun canGoBack(): Boolean = false
 
-    override fun onNavigationUp(animationData: AnimationData?) {
+    override fun onNavigationUp(animationData: AnimationData?): Boolean {
         val lastNavigationFragment =
             searchLastNavigationContextProvider(
                 requireActivity().supportFragmentManager.fragments
-            ) { true } ?: return
+            ) { true } ?: return false
         val canGoBackNavigationFragment = getCanGoBackLastFragment(
             lastNavigationFragment as Fragment
         )
-        when {
+        return when {
             canGoBackNavigationFragment != lastNavigationFragment
                     && lastNavigationFragment is DialogFragment -> {
-                navigator.goBack()
+                navigator.goBack() == Unit
             }
 
             canGoBackNavigationFragment is OnNavigationUpProvider -> {
                 canGoBackNavigationFragment.onNavigationUp(animationData)
             }
+
+            else -> false
         }
     }
 
@@ -146,7 +148,7 @@ class NavigationContextChangerFragment : Fragment(R.layout.container),
         fragments: List<Fragment>,
         predicate: (Fragment) -> Boolean
     ): NavigationContextProvider? {
-        fragments.find {
+        fragments.findLast {
             it is NavigationContextProvider
                     && predicate(it)
         }?.let { fragment ->
