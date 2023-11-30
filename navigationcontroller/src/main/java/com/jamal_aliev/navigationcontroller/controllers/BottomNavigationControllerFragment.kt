@@ -12,8 +12,27 @@ import me.aartikov.alligator.ScreenResolver
 
 open class BottomNavigationControllerFragmentScreen(
     @MenuRes open val menuId: Int,
-    override val screens: List<SwitchScreen> = ArrayList()
-) : SwitchNavigationControllerFragmentScreen(screens) {
+    open val screen1: SwitchScreen? = null,
+    open val screen2: SwitchScreen? = null,
+    open val screen3: SwitchScreen? = null,
+    open val screen4: SwitchScreen? = null,
+    open val screen5: SwitchScreen? = null,
+) : SwitchNavigationControllerFragmentScreen(
+    screens = arrayListOf<SwitchScreen>()
+        .apply {
+            screen1?.let { add(it) }
+            screen2?.let { add(it) }
+            screen3?.let { add(it) }
+            screen4?.let { add(it) }
+            screen5?.let { add(it) }
+
+            check(this.getOrNull(0) == screen1)
+            check(this.getOrNull(1) == screen2)
+            check(this.getOrNull(2) == screen3)
+            check(this.getOrNull(3) == screen4)
+            check(this.getOrNull(4) == screen5)
+        }
+) {
 
     override fun hashCode(): Int = menuId
 
