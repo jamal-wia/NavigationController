@@ -31,12 +31,13 @@ class NavigationContextChangerFragment : Fragment(R.layout.container),
             .build()
     }
 
-    override fun provideNavigationContext(): NavigationContext {
-        return navigationContext
-    }
+    override fun provideNavigationContext(): NavigationContext = navigationContext
 
-    override fun setNavigationContext(navigationContextProvider: NavigationContextProvider) {
+    override fun setNavigationContext(
+        navigationContextProvider: NavigationContextProvider
+    ): Boolean {
         navigator.bind(navigationContextProvider.provideNavigationContext())
+        return true
     }
 
     override fun setNavigationContextAfter(
