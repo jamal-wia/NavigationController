@@ -14,6 +14,10 @@ import com.jamal_aliev.navigationcontroller.controllers.WebViewNavigationControl
 import com.jamal_aliev.navigationcontroller.controllers.WebViewNavigationControllerFragmentScreen
 import me.aartikov.alligator.navigationfactories.RegistryNavigationFactory
 
+/**
+ * Класс для установки связей между объектами screen и реальными андройдовскими представлениями
+ * например - Activity, Fragment, DialogFragment
+ * */
 open class NavigationControllerFactory : RegistryNavigationFactory() {
     init {
         registerDialogFragment(

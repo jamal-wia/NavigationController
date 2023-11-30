@@ -5,7 +5,9 @@ import android.os.Bundle
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
 import com.jamal_aliev.navigationcontroller.R
-import com.jamal_aliev.navigationcontroller.core.SwitchNavigationControllerContract
+import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
+import com.jamal_aliev.navigationcontroller.core.animation.DisabledAnimationData
+import com.jamal_aliev.navigationcontroller.core.controller.SwitchNavigationControllerContract
 import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvider
 import com.jamal_aliev.navigationcontroller.core.screen.SwitchScreen
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
@@ -26,7 +28,9 @@ import java.io.Serializable
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class SwitchNavigationControllerFragmentScreen : Screen, Serializable
+open class SwitchNavigationControllerFragmentScreen(
+    open val defaultAnimationData: AnimationData = AppearFadeAnimationData()
+) : Screen, Serializable
 
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
@@ -44,6 +48,9 @@ open class SwitchNavigationControllerFragment : Fragment,
     private val screenResolver: ScreenResolver get() = navigator.screenResolver
     private val navigationFactory: NavigationFactory get() = navigator.navigationFactory
 
+    private val args: SwitchNavigationControllerFragmentScreen
+            by lazy { screenResolver.getScreen(this) }
+    private val defaultAnimationData by lazy { args.defaultAnimationData }
 
     protected val currentScreen get() = backStack.last()
     protected var backStack = ArrayList<SwitchScreen>()
@@ -69,8 +76,6 @@ open class SwitchNavigationControllerFragment : Fragment,
             .screenSwitcher(provideScreenSwitcher())
             .screenSwitchingListener { screenFrom, screenTo ->
                 onSwitchScreen(screenFrom as? SwitchScreen, screenTo as SwitchScreen)
-                requireNavigationContextChanger()
-                    .setNavigationContextAfter(this) { true }
             }
             .build()
     }
@@ -89,8 +94,10 @@ open class SwitchNavigationControllerFragment : Fragment,
     override fun onSwitchScreen(screenFrom: SwitchScreen?, screenTo: SwitchScreen) {
         val index = backStack.indexOfFirst { it.id == screenTo.id }
         if (index != -1) backStack.removeAt(index)
-
         backStack.add(screenTo)
+
+        requireNavigationContextChanger()
+            .setNavigationContextAfter(this) { true }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -127,7 +134,13 @@ open class SwitchNavigationControllerFragment : Fragment,
         screenTo: Screen,
         animationData: AnimationData?
     ): TransitionAnimation {
-        return appearFadeAnimation
+        var resultAnimationData = animationData
+        if (resultAnimationData == null) resultAnimationData = defaultAnimationData
+        return when (resultAnimationData) {
+            is AppearFadeAnimationData -> appearFadeAnimation
+            is DisabledAnimationData -> TransitionAnimation.DEFAULT
+            else -> TransitionAnimation.DEFAULT
+        }
     }
 
     private companion object {

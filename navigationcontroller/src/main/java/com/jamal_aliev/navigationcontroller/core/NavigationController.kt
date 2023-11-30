@@ -1,3 +1,0 @@
-package com.jamal_aliev.navigationcontroller.core
-
-interface NavigationController

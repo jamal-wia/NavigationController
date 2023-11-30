@@ -7,9 +7,9 @@ import androidx.core.view.ViewCompat
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.jamal_aliev.navigationcontroller.R
-import com.jamal_aliev.navigationcontroller.core.LineNavigationControllerContract
 import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
 import com.jamal_aliev.navigationcontroller.core.animation.ForwardBackAnimationData
+import com.jamal_aliev.navigationcontroller.core.controller.LineNavigationControllerContract
 import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvider
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
 import com.jamal_aliev.navigationcontroller.util.requireAppCompatActivity
@@ -69,14 +69,20 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(R.layout
         NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
             .fragmentNavigation(childFragmentManager, getContainerId())
             .transitionAnimationProvider(this)
-            .transitionListener { transitionType, destinationType,
-                                  screenClassFrom, screenClassTo ->
-                if (transitionType == TransitionType.BACK) {
-                    requireNavigationContextChanger()
-                        .setNavigationContextAfter(this) { true }
-                }
-            }
+            .transitionListener(::onTransactionScreen)
             .build()
+    }
+
+    override fun onTransactionScreen(
+        transitionType: TransitionType,
+        destinationType: DestinationType,
+        screenClassFrom: Class<out Screen>?,
+        screenClassTo: Class<out Screen>?
+    ) {
+        if (transitionType == TransitionType.BACK) {
+            requireNavigationContextChanger()
+                .setNavigationContextAfter(this) { true }
+        }
     }
 
     private var animationPool = ArrayList<AnimationData>()
