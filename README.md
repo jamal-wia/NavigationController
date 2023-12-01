@@ -14,7 +14,9 @@ repositories {
 }
 ```
 
-`implementation("com.github.jamal-wia:NavigationController:1.0.6")`
+```
+implementation("com.github.jamal-wia:NavigationController:1.0.6")
+```
 
 ## **Быстрый старт**
 
