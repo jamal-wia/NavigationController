@@ -14,7 +14,7 @@ repositories {
 }
 ```
 
-```
+``` Gradle
 implementation("com.github.jamal-wia:NavigationController:1.0.6")
 ```
 
@@ -27,7 +27,7 @@ implementation("com.github.jamal-wia:NavigationController:1.0.6")
 
 #### Пример кода
 
-```
+``` Kotlin
 class AppRegistryNavigationControllerFactory : NavigationControllerFactory() {
     init {
         registerFragment(
@@ -45,7 +45,7 @@ class AppRegistryNavigationControllerFactory : NavigationControllerFactory() {
 
 #### Пример кода
 
-```
+``` Kotlin
 NavigationControllerHolder.createNavigator(AppRegistryNavigationControllerFactory())
 ```
 
@@ -56,7 +56,7 @@ NavigationControllerHolder.createNavigator(AppRegistryNavigationControllerFactor
 
 #### Пример кода
 
-```
+``` Kotlin
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
