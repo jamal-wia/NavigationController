@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.jamal-wia"
-version = "1.0.1"
+version = "1.0.4"
 
 android {
     namespace = "com.jamal_aliev.navigationcontroller"
@@ -29,11 +29,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 }
 
@@ -43,6 +43,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.10.0")
     api("com.github.aartikov.Alligator:alligator:4.1.0")
+
 }
 
 afterEvaluate {
@@ -52,7 +53,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.jamal-wia"
                 artifactId = "NavigationController"
-                version = "1.0.1"
+                version = "1.0.4"
             }
         }
     }
