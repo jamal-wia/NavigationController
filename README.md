@@ -27,16 +27,16 @@ implementation("com.github.jamal-wia:NavigationController:1.0.6")
 
 #### Пример кода
 
-`
+```
 class AppRegistryNavigationControllerFactory : NavigationControllerFactory() {
-init {
-registerFragment(
-Screens.ColorFragmentScreen::class.java,
-ColorFragment::class.java
-)
+    init {
+        registerFragment(
+            Screens.ColorFragmentScreen::class.java,
+            ColorFragment::class.java
+        )
+    }
 }
-}
-`
+```
 Так же есть методы: `registerDialogFragment` `registerActivity`
 
 ### Шаг 2
@@ -45,28 +45,30 @@ ColorFragment::class.java
 
 #### Пример кода
 
-`NavigationControllerHolder.createNavigator(AppRegistryNavigationControllerFactory())`
+```
+NavigationControllerHolder.createNavigator(AppRegistryNavigationControllerFactory())
+```
 
 ### Шаг 3
 
-В той активти в которой вы хотите использовать навигацию на основе фрагментов необходимо **один раз
-** запустить **NavigationContextChangerFragment**
+В той активти в которой вы хотите использовать навигацию на основе фрагментов необходимо
+**один раз** запустить **NavigationContextChangerFragment**
 
 #### Пример кода
 
-`
+```
 class MainActivity : AppCompatActivity() {
-override fun onCreate(savedInstanceState: Bundle?) {
-super.onCreate(savedInstanceState)
-setContentView(R.layout.activity_main)
-if (savedInstanceState == null) { // Что бы код выполнился только один раз
-NavigationContextChangerFragment.show(
-supportFragmentManager,
-R.id.navigation_container // R.id.navigation_container - Предстовляет из себя FragmentContainerView в layout/activity_main.xml
-)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+        if (savedInstanceState == null) { // Что бы код выполнился только один раз
+            NavigationContextChangerFragment.show(
+                supportFragmentManager,
+                R.id.navigation_container // R.id.navigation_container - Предстовляет из себя FragmentContainerView в layout/activity_main.xml
+            )
+        }
+    }
 }
-}
-}
-`
+```
 
 
