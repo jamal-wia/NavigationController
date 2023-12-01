@@ -2,7 +2,11 @@ plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     id("kotlin-parcelize")
+    id("maven-publish")
 }
+
+group = "com.github.jamal-wia"
+version = "1.0.1"
 
 android {
     namespace = "com.jamal_aliev.navigationcontroller"
@@ -39,4 +43,17 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.10.0")
     api("com.github.aartikov.Alligator:alligator:4.1.0")
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create("release", MavenPublication::class) {
+                from(components["release"])
+                groupId = "com.github.jamal-wia"
+                artifactId = "NavigationController"
+                version = "1.0.1"
+            }
+        }
+    }
 }
