@@ -6,7 +6,7 @@
 
 ## **Подключение**
 
-``` Kotlin
+``` Gradle
 repositories {
     google()
     mavenCentral()
