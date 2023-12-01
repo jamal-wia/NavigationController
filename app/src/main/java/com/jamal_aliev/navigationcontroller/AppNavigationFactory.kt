@@ -5,8 +5,10 @@ import com.jamal_aliev.navigationcontroller.core.NavigationControllerFactory
 
 class AppRegistryNavigationControllerFactory : NavigationControllerFactory() {
     init {
-        registerFragment(Screens.ColorFragmentScreen::class.java, ColorFragment::class.java)
-
+        registerFragment(
+            Screens.ColorFragmentScreen::class.java,
+            ColorFragment::class.java
+        )
         registerFragment(
             Screens.Tab1LineNavigationController::class.java,
             NavigationControllerFragment::class.java
