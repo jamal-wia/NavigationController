@@ -1,6 +1,5 @@
 # **NavigationController**
 
-### NavigationController
 **NavigationController** - это современная навигационная библиотека для Android, которая использует
 другую навигационную библиотеку под названием [Alligator](https://github.com/aartikov/Alligator).
 Вместе они обеспечивают мощную и расширяемую систему навигации.
