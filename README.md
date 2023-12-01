@@ -6,19 +6,17 @@
 
 ## **Подключение**
 
-```
-repositories {
+```repositories {
     google()
     mavenCentral()
     maven { setUrl("https://jitpack.io") }
-}
-```
+}```
 
 ```
 implementation("com.github.jamal-wia:NavigationController:1.0.6")
 ```
 
-## **Быстрый старт**
+## **Быстрый старт в 3 шага**
 
 Так как библиотека при переключении экранов использует объекты **Screen** вам необходимо расписать
 связи между объектами **Screen** и реальными (**Activity**, **Fragment** или **DialogFragment**)
