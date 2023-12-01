@@ -6,13 +6,13 @@
 
 ## **Подключение**
 
-`
+```
 repositories {
-google()
-mavenCentral()
-maven { setUrl("https://jitpack.io") }
+    google()
+    mavenCentral()
+    maven { setUrl("https://jitpack.io") }
 }
-`
+```
 
 `implementation("com.github.jamal-wia:NavigationController:1.0.6")`
 
