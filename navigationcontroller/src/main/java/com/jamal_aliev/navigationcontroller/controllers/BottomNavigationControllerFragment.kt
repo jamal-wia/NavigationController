@@ -117,7 +117,7 @@ open class BottomNavigationControllerFragment : SwitchNavigationControllerFragme
 
                 requireNavigationContextChanger()
                     .setNavigationContextAfter(this) { true }
-                navigator.goBackTo(rootScreen::class.java)
+                navigator.goBackTo(rootScreen)
             } catch (e: ScreenNotFoundException) {
                 // goBackTo может фантомно выдать ошибку
             } catch (e: Exception) {
