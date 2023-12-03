@@ -2,7 +2,9 @@ package com.jamal_aliev.navigationcontroller.core
 
 import android.content.DialogInterface
 import android.os.Bundle
+import android.os.Parcelable
 import androidx.activity.OnBackPressedCallback
+import androidx.core.os.bundleOf
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
@@ -15,7 +17,9 @@ import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
 import com.jamal_aliev.navigationcontroller.util.requireAppCompatActivity
 import kotlinx.coroutines.delay
 import me.aartikov.alligator.NavigationContext
+import me.aartikov.alligator.Screen
 import me.aartikov.alligator.animations.AnimationData
+import java.io.Serializable
 
 class NavigationControllerFragment : Fragment(R.layout.container),
     NavigationController,
@@ -23,6 +27,8 @@ class NavigationControllerFragment : Fragment(R.layout.container),
     NavigationContextProvider,
     DialogInterface.OnDismissListener,
     OnNavigationUpProvider {
+
+    var rootScreenArg: Screen? = null
 
     private val navigator get() = NavigationControllerHolder.requireNavigator()
     private val navigationFactory get() = navigator.navigationFactory
@@ -35,6 +41,19 @@ class NavigationControllerFragment : Fragment(R.layout.container),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (savedInstanceState == null) rootScreenArg?.let { navigator.goForward(it) }
+        else {
+            val rootScreen = (savedInstanceState.getSerializable(ROOT_SCREEN_ARG_KEY)
+                ?: savedInstanceState.getParcelable(ROOT_SCREEN_ARG_KEY)) as? Screen
+            if (rootScreen != null) rootScreenArg = rootScreen
+        }
+
+        if (rootScreenArg == null) {
+            rootScreenArg = (arguments?.getSerializable(ROOT_SCREEN_ARG_KEY)
+                ?: arguments?.getParcelable(ROOT_SCREEN_ARG_KEY)) as? Screen
+        }
+
         requireActivity().onBackPressedDispatcher
             .addCallback(
                 owner = this,
@@ -65,6 +84,15 @@ class NavigationControllerFragment : Fragment(R.layout.container),
     override fun onPause() {
         super.onPause()
         navigator.unbind(requireAppCompatActivity())
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        when (val rootScreen = rootScreenArg) {
+            is Serializable -> outState.putSerializable(ROOT_SCREEN_ARG_KEY, rootScreen)
+            is Parcelable -> outState.putParcelable(ROOT_SCREEN_ARG_KEY, rootScreen)
+        }
+
+        super.onSaveInstanceState(outState)
     }
 
     override fun provideNavigationContext(): NavigationContext = navigationContext
@@ -110,15 +138,23 @@ class NavigationControllerFragment : Fragment(R.layout.container),
     override fun canGoBack(): Boolean = false
 
     override fun onNavigationUp(animationData: AnimationData?): Boolean {
+
+        fun resetToRootScreen(): Boolean {
+            return if (rootScreenArg != null) {
+                setNavigationContext(this)
+                navigator.reset(rootScreenArg!!) == Unit
+            } else false
+        }
+
         val lastNavigationFragment =
             findFragmentAfter(
                 fragments = requireActivity().supportFragmentManager.fragments,
                 predicate = fun(fragment): Boolean {
                     return fragment is OnNavigationUpProvider
                             && fragment.childFragmentManager
-                        .fragments.any { it !is OnNavigationUpProvider }
+                        .fragments.all { it !is OnNavigationUpProvider }
                 }
-            ) ?: return false
+            ) ?: return resetToRootScreen()
         val canGoBackNavigationFragment =
             findFragmentBefore(
                 fragment = lastNavigationFragment,
@@ -126,7 +162,7 @@ class NavigationControllerFragment : Fragment(R.layout.container),
                     return (fragment as? OnNavigationUpProvider)
                         ?.canGoBack() == true
                 }
-            ) ?: return false
+            ) ?: return resetToRootScreen()
 
 
         return when {
@@ -150,7 +186,7 @@ class NavigationControllerFragment : Fragment(R.layout.container),
                 predicate = fun(fragment): Boolean {
                     return fragment is OnNavigationUpProvider
                             && fragment.childFragmentManager
-                        .fragments.any { it !is OnNavigationUpProvider }
+                        .fragments.all { it !is OnNavigationUpProvider }
                 }
             ) ?: return navigator.goBack()
         val canGoBackNavigationFragment =
@@ -215,10 +251,32 @@ class NavigationControllerFragment : Fragment(R.layout.container),
         return result.takeIf { it != this }
     }
 
-    companion object {
+    private companion object {
+        private const val ROOT_SCREEN_ARG_KEY =
+            "com.jamal_aliev.navigationcontroller.ROOT_SCREEN"
+    }
+
+    class Builder() {
+
+        private var rootScreen: Screen? = null
+
+        fun setRootScreen(screen: Screen): Builder {
+            check(screen is Serializable || screen is Parcelable)
+            rootScreen = screen
+            return this
+        }
+
         fun show(fragmentManager: FragmentManager, containerId: Int) {
             fragmentManager.beginTransaction()
-                .add(containerId, NavigationControllerFragment())
+                .add(
+                    containerId,
+                    NavigationControllerFragment()
+                        .apply {
+                            arguments = bundleOf(
+                                ROOT_SCREEN_ARG_KEY to rootScreenArg
+                            )
+                        }
+                )
                 .commitNow()
         }
     }

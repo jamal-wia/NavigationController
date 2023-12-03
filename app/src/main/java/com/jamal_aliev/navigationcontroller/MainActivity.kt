@@ -14,13 +14,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         if (savedInstanceState == null) {
-            NavigationControllerFragment.show(
-                supportFragmentManager,
-                R.id.root_navigation_changer
-            )
+            NavigationControllerFragment.Builder()
+                .setRootScreen(LineNavigationControllerFragmentScreen())
+                .show(supportFragmentManager, R.id.navigation_container)
 
             lifecycleScope.launchWhenResumed {
-                App.navigator.goForward(LineNavigationControllerFragmentScreen())
                 App.navigator.goForward(Screens.AppBottomNavigationControllerScreen)
             }
         }
