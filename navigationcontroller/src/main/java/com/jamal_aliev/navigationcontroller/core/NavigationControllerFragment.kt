@@ -30,6 +30,13 @@ class NavigationControllerFragment : Fragment(R.layout.container),
 
     var rootScreenArg: Screen? = null
 
+    private val showRootScreen by lazy {
+        arguments?.getBoolean(
+            SHOW_ROOT_SCREEN_ARG_KEY,
+            true
+        ) ?: true
+    }
+
     private val navigator get() = NavigationControllerHolder.requireNavigator()
     private val navigationFactory get() = navigator.navigationFactory
 
@@ -42,8 +49,9 @@ class NavigationControllerFragment : Fragment(R.layout.container),
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (savedInstanceState == null) rootScreenArg?.let { navigator.goForward(it) }
-        else {
+        if (savedInstanceState == null) {
+            if (showRootScreen) rootScreenArg?.let { navigator.reset(it) }
+        } else {
             val rootScreen = (savedInstanceState.getSerializable(ROOT_SCREEN_ARG_KEY)
                 ?: savedInstanceState.getParcelable(ROOT_SCREEN_ARG_KEY)) as? Screen
             if (rootScreen != null) rootScreenArg = rootScreen
@@ -67,6 +75,7 @@ class NavigationControllerFragment : Fragment(R.layout.container),
 
     override fun onResume() {
         super.onResume()
+
         val success = setNavigationContextAfter(null, predicate = fun(_) = true)
         if (!success) setNavigationContext(this)
     }
@@ -253,16 +262,21 @@ class NavigationControllerFragment : Fragment(R.layout.container),
 
     private companion object {
         private const val ROOT_SCREEN_ARG_KEY =
-            "com.jamal_aliev.navigationcontroller.ROOT_SCREEN"
+            "com.jamal_aliev.navigationcontroller.ROOT_SCREEN_ARG_KEY"
+
+        private const val SHOW_ROOT_SCREEN_ARG_KEY =
+            "com.jamal_aliev.navigationcontroller.SHOW_ROOT_SCREEN_ARG_KEY"
     }
 
     class Builder() {
 
         private var rootScreen: Screen? = null
+        private var showRootScreen: Boolean = true
 
-        fun setRootScreen(screen: Screen): Builder {
+        fun setRootScreen(screen: Screen, show: Boolean = true): Builder {
             check(screen is Serializable || screen is Parcelable)
             rootScreen = screen
+            showRootScreen = show
             return this
         }
 
@@ -273,7 +287,8 @@ class NavigationControllerFragment : Fragment(R.layout.container),
                     NavigationControllerFragment()
                         .apply {
                             arguments = bundleOf(
-                                ROOT_SCREEN_ARG_KEY to rootScreenArg
+                                ROOT_SCREEN_ARG_KEY to rootScreenArg,
+                                SHOW_ROOT_SCREEN_ARG_KEY to showRootScreen
                             )
                         }
                 )
