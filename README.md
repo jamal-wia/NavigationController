@@ -65,11 +65,11 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        
         if (savedInstanceState == null) { // Что бы код выполнился только один раз
-            NavigationContextChangerFragment.show(
-                supportFragmentManager,
-                R.id.navigation_container // R.id.navigation_container - Предстовляет из себя FragmentContainerView в layout/activity_main.xml
-            )
+            NavigationControllerFragment.Builder()
+                .setRootScreen(LineNavigationControllerFragmentScreen())
+                .show(supportFragmentManager, R.id.navigation_container) //  R.id.navigation_container - Предстовляет из себя FragmentContainerView в layout/activity_main.xml
         }
     }
 }
