@@ -13,14 +13,13 @@ https://play.google.com/store/apps/details?id=com.ummalife.android
 
 ``` Gradle
 repositories {
-    google()
-    mavenCentral()
+    .....
     maven { setUrl("https://jitpack.io") }
 }
 ```
 
 ``` Gradle
-implementation("com.github.jamal-wia:NavigationController:1.0.6")
+implementation("com.github.jamal-wia:NavigationController:1.1.0")
 ```
 
 ## **Быстрый старт в 3 шага**
