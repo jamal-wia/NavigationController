@@ -13,7 +13,7 @@ https://play.google.com/store/apps/details?id=com.ummalife.android
 
 ``` Gradle
 repositories {
-    .....
+    ....
     maven { setUrl("https://jitpack.io") }
 }
 ```
