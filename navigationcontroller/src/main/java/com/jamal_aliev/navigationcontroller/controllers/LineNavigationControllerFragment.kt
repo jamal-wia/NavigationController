@@ -3,7 +3,11 @@ package com.jamal_aliev.navigationcontroller.controllers
 import android.os.Bundle
 import androidx.core.view.ViewCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.jamal_aliev.navigationcontroller.R
+import com.jamal_aliev.navigationcontroller.core.TransactionData
 import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
 import com.jamal_aliev.navigationcontroller.core.animation.ForwardBackAnimationData
 import com.jamal_aliev.navigationcontroller.core.controller.LineNavigationControllerContract
@@ -11,6 +15,7 @@ import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvi
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
 import com.jamal_aliev.navigationcontroller.util.requireAppCompatActivity
 import com.jamal_aliev.navigationcontroller.util.requireNavigationContextChanger
+import kotlinx.coroutines.flow.MutableSharedFlow
 import me.aartikov.alligator.AndroidNavigator
 import me.aartikov.alligator.DestinationType
 import me.aartikov.alligator.NavigationContext
@@ -42,7 +47,7 @@ open class LineNavigationControllerFragmentScreen(
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class NavigationControllerFragment : Fragment(R.layout.container),
+open class LineNavigationControllerFragment : Fragment(R.layout.container),
     LineNavigationControllerContract,
     NavigationContextProvider,
     TransitionAnimationProvider {
@@ -51,6 +56,42 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
     private val navigatorFactory get() = navigator.navigationFactory
     private val fragmentNavigator get() = navigator.navigationContext?.fragmentNavigator
     private val screenResolver get() = navigator.screenResolver
+
+    private val navigationContext by lazy {
+        NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
+            .fragmentNavigation(childFragmentManager, getContainerId())
+            .transitionAnimationProvider(this)
+            .transitionListener(::onTransactionScreen)
+            .build()
+    }
+
+    override fun provideNavigationContext(): NavigationContext = navigationContext
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) {
+            val screen = screenResolver.getScreen<LineNavigationControllerFragmentScreen>(this)
+            requireNavigationContextChanger().setNavigationContext(this)
+            for ((index, item) in screen.screens.withIndex()) {
+                if (index == 0) navigator.reset(item)
+                else navigator.goForward(item)
+            }
+        } else if (animationPool.isEmpty()) {
+            val serializableValue = savedInstanceState.getSerializable(ANIMATION_POOL_KEY)
+            animationPool = (serializableValue as? ArrayList<AnimationData>)
+                ?: ArrayList()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putSerializable(ANIMATION_POOL_KEY, animationPool)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+        transactionsListeners.clear()
+        super.onDestroy()
+    }
 
     override fun getContainerId(): Int = R.id.container
 
@@ -64,15 +105,22 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
         return fragmentNavigator?.goBack(null, animationData) == Unit
     }
 
+    private val transactionsListeners = hashMapOf<Int, MutableSharedFlow<TransactionData>>()
 
-    override fun provideNavigationContext(): NavigationContext = navigationContext
+    fun observeTransactionListener(
+        lifecycle: Lifecycle,
+        listenerId: Int,
+        sharedFlow: MutableSharedFlow<TransactionData>
+    ) {
+        transactionsListeners[listenerId] = sharedFlow
 
-    private val navigationContext by lazy {
-        NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
-            .fragmentNavigation(childFragmentManager, getContainerId())
-            .transitionAnimationProvider(this)
-            .transitionListener(::onTransactionScreen)
-            .build()
+        lifecycle.addObserver(object : LifecycleEventObserver {
+            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                if (event == Lifecycle.Event.ON_DESTROY) {
+                    transactionsListeners.remove(listenerId)
+                }
+            }
+        })
     }
 
     override fun onTransactionScreen(
@@ -81,6 +129,14 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
         screenClassFrom: Class<out Screen>?,
         screenClassTo: Class<out Screen>?
     ) {
+        transactionsListeners.forEach { (_, v) ->
+            v.tryEmit(
+                TransactionData(
+                    transitionType, destinationType,
+                    screenClassFrom, screenClassTo
+                )
+            )
+        }
         if (transitionType == TransitionType.BACK) {
             requireNavigationContextChanger()
                 .setNavigationContextAfter(this) { true }
@@ -204,27 +260,6 @@ open class NavigationControllerFragment : Fragment(R.layout.container),
 
             else -> TransitionAnimation.DEFAULT
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (savedInstanceState == null) {
-            val screen = screenResolver.getScreen<LineNavigationControllerFragmentScreen>(this)
-            requireNavigationContextChanger().setNavigationContext(this)
-            for ((index, item) in screen.screens.withIndex()) {
-                if (index == 0) navigator.reset(item)
-                else navigator.goForward(item)
-            }
-        } else if (animationPool.isEmpty()) {
-            val serializableValue = savedInstanceState.getSerializable(ANIMATION_POOL_KEY)
-            animationPool = (serializableValue as? ArrayList<AnimationData>)
-                ?: ArrayList()
-        }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putSerializable(ANIMATION_POOL_KEY, animationPool)
-        super.onSaveInstanceState(outState)
     }
 
     private companion object {

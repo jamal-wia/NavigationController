@@ -3,10 +3,14 @@ package com.jamal_aliev.navigationcontroller.controllers
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatDialog
 import androidx.core.view.ViewCompat
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.jamal_aliev.navigationcontroller.R
+import com.jamal_aliev.navigationcontroller.core.TransactionData
 import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
 import com.jamal_aliev.navigationcontroller.core.animation.ForwardBackAnimationData
 import com.jamal_aliev.navigationcontroller.core.controller.LineNavigationControllerContract
@@ -14,6 +18,7 @@ import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvi
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
 import com.jamal_aliev.navigationcontroller.util.requireAppCompatActivity
 import com.jamal_aliev.navigationcontroller.util.requireNavigationContextChanger
+import kotlinx.coroutines.flow.MutableSharedFlow
 import me.aartikov.alligator.AndroidNavigator
 import me.aartikov.alligator.DestinationType
 import me.aartikov.alligator.NavigationContext
@@ -41,7 +46,7 @@ open class LineNavigationControllerBottomDialogScreen(
 /**
  * @author Jamal Aliev (aliev.djamal.2000@gmail.com)
  */
-open class NavigationControllerBottomDialog : BottomSheetDialogFragment(R.layout.container),
+open class LineNavigationControllerBottomDialog : BottomSheetDialogFragment(R.layout.container),
     LineNavigationControllerContract,
     NavigationContextProvider,
     TransitionAnimationProvider {
@@ -51,7 +56,91 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(R.layout
     private val fragmentNavigator get() = navigator.navigationContext?.fragmentNavigator
     private val screenResolver get() = navigator.screenResolver
 
+    private val navigationContext by lazy {
+        NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
+            .fragmentNavigation(childFragmentManager, getContainerId())
+            .transitionAnimationProvider(this)
+            .transitionListener(::onTransactionScreen)
+            .build()
+    }
+
+    override fun provideNavigationContext(): NavigationContext = navigationContext
+
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        return object : AppCompatDialog(requireContext(), theme) {
+            override fun onBackPressed() {
+                requireActivity().onBackPressed()
+            }
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        if (savedInstanceState == null) {
+            val screen = screenResolver.getScreen<LineNavigationControllerDialogScreen>(this)
+            requireNavigationContextChanger().setNavigationContext(this)
+            for ((index, item) in screen.screens.withIndex()) {
+                if (index == 0) navigator.reset(item)
+                else navigator.goForward(item)
+            }
+        } else if (animationPool.isEmpty()) {
+            val serializableValue = savedInstanceState.getSerializable(ANIMATION_POOL_KEY)
+            animationPool = (serializableValue as? ArrayList<AnimationData>)
+                ?: ArrayList()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putSerializable(ANIMATION_POOL_KEY, animationPool)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroy() {
+        transactionsListeners.clear()
+        (requireNavigationContextChanger() as? DialogInterface.OnDismissListener)
+            ?.onDismiss(dialog)
+        super.onDestroy()
+    }
+
     override fun getContainerId(): Int = R.id.container
+
+    private val transactionsListeners = hashMapOf<Int, MutableSharedFlow<TransactionData>>()
+
+    fun observeTransactionListener(
+        lifecycle: Lifecycle,
+        listenerId: Int,
+        sharedFlow: MutableSharedFlow<TransactionData>
+    ) {
+        transactionsListeners[listenerId] = sharedFlow
+
+        lifecycle.addObserver(object : LifecycleEventObserver {
+            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                if (event == Lifecycle.Event.ON_DESTROY) {
+                    transactionsListeners.remove(listenerId)
+                }
+            }
+        })
+    }
+
+    override fun onTransactionScreen(
+        transitionType: TransitionType,
+        destinationType: DestinationType,
+        screenClassFrom: Class<out Screen>?,
+        screenClassTo: Class<out Screen>?
+    ) {
+        transactionsListeners.forEach { (_, v) ->
+            v.tryEmit(
+                TransactionData(
+                    transitionType, destinationType,
+                    screenClassFrom, screenClassTo
+                )
+            )
+        }
+        if (transitionType == TransitionType.BACK) {
+            requireNavigationContextChanger()
+                .setNavigationContextAfter(this) { true }
+        }
+    }
 
     override fun canGoBack(): Boolean {
         requireNavigationContextChanger().setNavigationContext(this)
@@ -61,28 +150,6 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(R.layout
     override fun onNavigationUp(animationData: AnimationData?): Boolean {
         requireNavigationContextChanger().setNavigationContext(this)
         return fragmentNavigator?.goBack(null, animationData) == Unit
-    }
-
-    override fun provideNavigationContext(): NavigationContext = navigationContext
-
-    private val navigationContext by lazy {
-        NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
-            .fragmentNavigation(childFragmentManager, getContainerId())
-            .transitionAnimationProvider(this)
-            .transitionListener(::onTransactionScreen)
-            .build()
-    }
-
-    override fun onTransactionScreen(
-        transitionType: TransitionType,
-        destinationType: DestinationType,
-        screenClassFrom: Class<out Screen>?,
-        screenClassTo: Class<out Screen>?
-    ) {
-        if (transitionType == TransitionType.BACK) {
-            requireNavigationContextChanger()
-                .setNavigationContextAfter(this) { true }
-        }
     }
 
     private var animationPool = ArrayList<AnimationData>()
@@ -202,41 +269,6 @@ open class NavigationControllerBottomDialog : BottomSheetDialogFragment(R.layout
 
             else -> TransitionAnimation.DEFAULT
         }
-    }
-
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return object : BottomSheetDialog(requireContext(), theme) {
-            override fun onBackPressed() {
-                requireActivity().onBackPressed()
-            }
-        }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (savedInstanceState == null) {
-            val screen = screenResolver.getScreen<LineNavigationControllerBottomDialogScreen>(this)
-            requireNavigationContextChanger().setNavigationContext(this)
-            for ((index, item) in screen.screens.withIndex()) {
-                if (index == 0) navigator.reset(item)
-                else navigator.goForward(item)
-            }
-        } else if (animationPool.isEmpty()) {
-            val serializableValue = savedInstanceState.getSerializable(ANIMATION_POOL_KEY)
-            animationPool = (serializableValue as? ArrayList<AnimationData>)
-                ?: ArrayList()
-        }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putSerializable(ANIMATION_POOL_KEY, animationPool)
-        super.onSaveInstanceState(outState)
-    }
-
-    override fun onDestroy() {
-        (requireNavigationContextChanger() as? DialogInterface.OnDismissListener)
-            ?.onDismiss(dialog)
-        super.onDestroy()
     }
 
     private companion object {

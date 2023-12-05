@@ -14,6 +14,8 @@ import com.jamal_aliev.navigationcontroller.core.controller.NavigationController
 import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvider
 import com.jamal_aliev.navigationcontroller.core.provider.OnNavigationUpProvider
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
+import com.jamal_aliev.navigationcontroller.util.findFragmentAfter
+import com.jamal_aliev.navigationcontroller.util.findFragmentBefore
 import com.jamal_aliev.navigationcontroller.util.requireAppCompatActivity
 import kotlinx.coroutines.delay
 import me.aartikov.alligator.NavigationContext
@@ -45,6 +47,8 @@ class NavigationControllerFragment : Fragment(R.layout.container),
             .fragmentNavigation(childFragmentManager, R.id.container)
             .build()
     }
+
+    override fun provideNavigationContext(): NavigationContext = navigationContext
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,8 +108,6 @@ class NavigationControllerFragment : Fragment(R.layout.container),
         super.onSaveInstanceState(outState)
     }
 
-    override fun provideNavigationContext(): NavigationContext = navigationContext
-
     override fun setNavigationContext(
         navigationContextProvider: NavigationContextProvider
     ): Boolean {
@@ -122,6 +124,7 @@ class NavigationControllerFragment : Fragment(R.layout.container),
 
         val navigationContextProvider = findFragmentAfter(fragments) {
             it is NavigationContextProvider
+                    && it != this
                     && predicate(it)
         } as? NavigationContextProvider
 
@@ -136,6 +139,7 @@ class NavigationControllerFragment : Fragment(R.layout.container),
     ): Boolean {
         val navigationContextProvider = findFragmentBefore(fragment) {
             it is NavigationContextProvider
+                    && it != this
                     && predicate(it)
         } as? NavigationContextProvider
 
@@ -160,6 +164,7 @@ class NavigationControllerFragment : Fragment(R.layout.container),
                 fragments = requireActivity().supportFragmentManager.fragments,
                 predicate = fun(fragment): Boolean {
                     return fragment is OnNavigationUpProvider
+                            && fragment != this
                             && fragment.childFragmentManager
                         .fragments.all { it !is OnNavigationUpProvider }
                 }
@@ -194,6 +199,7 @@ class NavigationControllerFragment : Fragment(R.layout.container),
                 fragments = requireActivity().supportFragmentManager.fragments,
                 predicate = fun(fragment): Boolean {
                     return fragment is OnNavigationUpProvider
+                            && fragment != this
                             && fragment.childFragmentManager
                         .fragments.all { it !is OnNavigationUpProvider }
                 }
@@ -221,43 +227,6 @@ class NavigationControllerFragment : Fragment(R.layout.container),
                 navigator.goBack()
             }
         }
-    }
-
-    private fun findFragmentAfter(
-        fragments: List<Fragment>,
-        predicate: (Fragment) -> Boolean
-    ): Fragment? {
-        fragments.findLast(predicate)
-            ?.let { fragment ->
-                return fragment.takeIf { it != this }
-                    ?: findFragmentAfter(
-                        fragments = fragment.childFragmentManager.fragments,
-                        predicate = predicate
-                    )
-            }
-
-        for (item in fragments) {
-            return findFragmentAfter(
-                fragments = item.childFragmentManager.fragments,
-                predicate = predicate
-            )
-        }
-
-        return null
-    }
-
-    private fun findFragmentBefore(
-        fragment: Fragment,
-        predicate: (Fragment) -> Boolean
-    ): Fragment? {
-        val result = fragment.takeIf(predicate)
-            ?: fragment.parentFragment?.let { parent ->
-                findFragmentBefore(
-                    fragment = parent,
-                    predicate = predicate
-                )
-            }
-        return result.takeIf { it != this }
     }
 
     private companion object {

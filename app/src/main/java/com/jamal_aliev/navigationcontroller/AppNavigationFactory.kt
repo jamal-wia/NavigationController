@@ -1,6 +1,6 @@
 package com.jamal_aliev.navigationcontroller
 
-import com.jamal_aliev.navigationcontroller.controllers.NavigationControllerFragment
+import com.jamal_aliev.navigationcontroller.controllers.LineNavigationControllerFragment
 import com.jamal_aliev.navigationcontroller.core.NavigationControllerFactory
 
 class AppRegistryNavigationControllerFactory : NavigationControllerFactory() {
@@ -11,23 +11,23 @@ class AppRegistryNavigationControllerFactory : NavigationControllerFactory() {
         )
         registerFragment(
             Screens.Tab1LineNavigationController::class.java,
-            NavigationControllerFragment::class.java
+            LineNavigationControllerFragment::class.java
         )
         registerFragment(
             Screens.Tab2LineNavigationController::class.java,
-            NavigationControllerFragment::class.java
+            LineNavigationControllerFragment::class.java
         )
         registerFragment(
             Screens.Tab3LineNavigationController::class.java,
-            NavigationControllerFragment::class.java
+            LineNavigationControllerFragment::class.java
         )
         registerFragment(
             Screens.Tab4LineNavigationController::class.java,
-            NavigationControllerFragment::class.java
+            LineNavigationControllerFragment::class.java
         )
         registerFragment(
             Screens.Tab5LineNavigationController::class.java,
-            NavigationControllerFragment::class.java
+            LineNavigationControllerFragment::class.java
         )
     }
 }
