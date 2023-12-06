@@ -1,4 +1,5 @@
 # **NavigationController**
+[![Release](https://jitpack.io/v/jamal-wia/NavigationController.svg)](https://jitpack.io/#jamal-wia/NavigationController) [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 **NavigationController** - это современная навигационная библиотека для Android, которая использует
 другую навигационную библиотеку под названием ❤ [Alligator](https://github.com/aartikov/Alligator)
