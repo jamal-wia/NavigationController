@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
 ```
 The MIT License (MIT)
 
-Copyright (c) 2017 Jamal Aliev
+Copyright (c) 2023 Jamal Aliev
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
