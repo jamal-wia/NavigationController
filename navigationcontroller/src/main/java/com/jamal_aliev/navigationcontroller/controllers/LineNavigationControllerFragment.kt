@@ -7,6 +7,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.jamal_aliev.navigationcontroller.R
+import com.jamal_aliev.navigationcontroller.core.NavigationContextChanger
 import com.jamal_aliev.navigationcontroller.core.TransactionData
 import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
 import com.jamal_aliev.navigationcontroller.core.animation.ForwardBackAnimationData
@@ -139,7 +140,7 @@ open class LineNavigationControllerFragment : Fragment(R.layout.container),
         }
         if (transitionType == TransitionType.BACK) {
             requireNavigationContextChanger()
-                .setNavigationContextAfter(this) { true }
+                .setNavigationContextAfter(this, NavigationContextChanger.AnyNavigationContext)
         }
     }
 

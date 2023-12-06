@@ -4,7 +4,11 @@ import android.os.Build
 import android.os.Bundle
 import androidx.annotation.LayoutRes
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.LifecycleOwner
 import com.jamal_aliev.navigationcontroller.R
+import com.jamal_aliev.navigationcontroller.core.NavigationContextChanger
 import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
 import com.jamal_aliev.navigationcontroller.core.animation.DisabledAnimationData
 import com.jamal_aliev.navigationcontroller.core.controller.SwitchNavigationControllerContract
@@ -13,6 +17,7 @@ import com.jamal_aliev.navigationcontroller.core.screen.SwitchScreen
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
 import com.jamal_aliev.navigationcontroller.util.requireAppCompatActivity
 import com.jamal_aliev.navigationcontroller.util.requireNavigationContextChanger
+import kotlinx.coroutines.flow.MutableSharedFlow
 import me.aartikov.alligator.AndroidNavigator
 import me.aartikov.alligator.NavigationContext
 import me.aartikov.alligator.Screen
@@ -88,6 +93,25 @@ open class SwitchNavigationControllerFragment : Fragment,
         return navigator.switchTo(backStack.last(), animationData) == Unit
     }
 
+    private val switchListeners =
+        hashMapOf<Int, MutableSharedFlow<Pair<SwitchScreen?, SwitchScreen>>>()
+
+    fun observeTransactionListener(
+        lifecycle: Lifecycle,
+        listenerId: Int,
+        sharedFlow: MutableSharedFlow<Pair<SwitchScreen?, SwitchScreen>>
+    ) {
+        switchListeners[listenerId] = sharedFlow
+
+        lifecycle.addObserver(object : LifecycleEventObserver {
+            override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+                if (event == Lifecycle.Event.ON_DESTROY) {
+                    switchListeners.remove(listenerId)
+                }
+            }
+        })
+    }
+
     /**
      * Обрабатывает переключение экрана
      * */
@@ -96,8 +120,12 @@ open class SwitchNavigationControllerFragment : Fragment,
         if (index != -1) backStack.removeAt(index)
         backStack.add(screenTo)
 
+        switchListeners.forEach { (_, v) ->
+            v.tryEmit(screenFrom to screenTo)
+        }
+
         requireNavigationContextChanger()
-            .setNavigationContextAfter(this) { true }
+            .setNavigationContextAfter(this, NavigationContextChanger.AnyNavigationContext)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
