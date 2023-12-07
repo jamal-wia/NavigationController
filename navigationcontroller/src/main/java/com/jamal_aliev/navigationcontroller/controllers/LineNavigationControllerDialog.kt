@@ -2,7 +2,9 @@ package com.jamal_aliev.navigationcontroller.controllers
 
 import android.app.Dialog
 import android.content.DialogInterface
+import android.os.Build
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatDialog
 import androidx.appcompat.app.AppCompatDialogFragment
 import androidx.core.view.ViewCompat
@@ -11,8 +13,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import com.jamal_aliev.navigationcontroller.R
 import com.jamal_aliev.navigationcontroller.core.TransactionData
-import com.jamal_aliev.navigationcontroller.core.animation.AppearFadeAnimationData
-import com.jamal_aliev.navigationcontroller.core.animation.ForwardBackAnimationData
+import com.jamal_aliev.navigationcontroller.core.animation.LineNavigationAnimationProvider
 import com.jamal_aliev.navigationcontroller.core.controller.LineNavigationControllerContract
 import com.jamal_aliev.navigationcontroller.core.provider.NavigationContextProvider
 import com.jamal_aliev.navigationcontroller.navigator.NavigationControllerHolder
@@ -25,9 +26,6 @@ import me.aartikov.alligator.NavigationContext
 import me.aartikov.alligator.Screen
 import me.aartikov.alligator.TransitionType
 import me.aartikov.alligator.animations.AnimationData
-import me.aartikov.alligator.animations.SimpleTransitionAnimation
-import me.aartikov.alligator.animations.TransitionAnimation
-import me.aartikov.alligator.animations.providers.TransitionAnimationProvider
 import java.io.Serializable
 
 /**
@@ -49,18 +47,19 @@ open class LineNavigationControllerDialogScreen(
  */
 open class LineNavigationControllerDialog : AppCompatDialogFragment(R.layout.container),
     LineNavigationControllerContract,
-    NavigationContextProvider,
-    TransitionAnimationProvider {
+    NavigationContextProvider {
 
     private val navigator: AndroidNavigator get() = NavigationControllerHolder.requireNavigator()
     private val navigatorFactory get() = navigator.navigationFactory
     private val fragmentNavigator get() = navigator.navigationContext?.fragmentNavigator
     private val screenResolver get() = navigator.screenResolver
 
+    private lateinit var lineNavigationAnimationProvider: LineNavigationAnimationProvider
+
     private val navigationContext by lazy {
         NavigationContext.Builder(requireAppCompatActivity(), navigatorFactory)
             .fragmentNavigation(childFragmentManager, getContainerId())
-            .transitionAnimationProvider(this)
+            .transitionAnimationProvider(lineNavigationAnimationProvider)
             .transitionListener(::onTransactionScreen)
             .build()
     }
@@ -77,6 +76,9 @@ open class LineNavigationControllerDialog : AppCompatDialogFragment(R.layout.con
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        lineNavigationAnimationProvider = getOrCreateAnimationProvider(savedInstanceState)
+
         if (savedInstanceState == null) {
             val screen = screenResolver.getScreen<LineNavigationControllerDialogScreen>(this)
             requireNavigationContextChanger().setNavigationContext(this)
@@ -84,15 +86,18 @@ open class LineNavigationControllerDialog : AppCompatDialogFragment(R.layout.con
                 if (index == 0) navigator.reset(item)
                 else navigator.goForward(item)
             }
-        } else if (animationPool.isEmpty()) {
-            val serializableValue = savedInstanceState.getSerializable(ANIMATION_POOL_KEY)
-            animationPool = (serializableValue as? ArrayList<AnimationData>)
-                ?: ArrayList()
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        lineNavigationAnimationProvider.ltr =
+            ViewCompat.getLayoutDirection(requireView()) == ViewCompat.LAYOUT_DIRECTION_LTR
+    }
+
+
     override fun onSaveInstanceState(outState: Bundle) {
-        outState.putSerializable(ANIMATION_POOL_KEY, animationPool)
+        outState.putSerializable(ANIMATION_PROVIDER_KEY, lineNavigationAnimationProvider)
         super.onSaveInstanceState(outState)
     }
 
@@ -104,6 +109,23 @@ open class LineNavigationControllerDialog : AppCompatDialogFragment(R.layout.con
     }
 
     override fun getContainerId(): Int = R.id.container
+
+    private fun getOrCreateAnimationProvider(
+        savedInstanceState: Bundle?
+    ): LineNavigationAnimationProvider {
+        val lineNavigationAnimationProvider =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                savedInstanceState?.getSerializable(
+                    ANIMATION_PROVIDER_KEY,
+                    LineNavigationAnimationProvider::class.java
+                )
+            } else {
+                savedInstanceState?.getSerializable(
+                    ANIMATION_PROVIDER_KEY
+                ) as? LineNavigationAnimationProvider
+            } ?: LineNavigationAnimationProvider()
+        return lineNavigationAnimationProvider
+    }
 
     private val transactionsListeners = hashMapOf<Int, MutableSharedFlow<TransactionData>>()
 
@@ -153,126 +175,7 @@ open class LineNavigationControllerDialog : AppCompatDialogFragment(R.layout.con
         return fragmentNavigator?.goBack(null, animationData) == Unit
     }
 
-    private var animationPool = ArrayList<AnimationData>()
-
-    private val rightSlideAnim by lazy {
-        SimpleTransitionAnimation(
-            R.anim.slide_in_right,
-            R.anim.slide_out_left
-        )
-    }
-
-    private val leftSlideAnim by lazy {
-        SimpleTransitionAnimation(
-            R.anim.slide_in_left,
-            R.anim.slide_out_right
-        )
-    }
-
-    private val appearFadeAnimation by lazy {
-        SimpleTransitionAnimation(
-            R.anim.appear,
-            R.anim.fade
-        )
-    }
-
-    override fun getAnimation(
-        transitionType: TransitionType,
-        destinationType: DestinationType,
-        screenClassFrom: Class<out Screen>,
-        screenClassTo: Class<out Screen>,
-        animationData: AnimationData?
-    ): TransitionAnimation {
-        val ltr = ViewCompat.getLayoutDirection(requireView()) == ViewCompat.LAYOUT_DIRECTION_LTR
-        val rtl = ViewCompat.getLayoutDirection(requireView()) == ViewCompat.LAYOUT_DIRECTION_RTL
-
-        var resultAnimationData = animationData
-        resultAnimationData ?: if (transitionType == TransitionType.BACK) {
-            resultAnimationData = animationPool.lastOrNull()
-        } else if (transitionType == TransitionType.REPLACE) {
-            resultAnimationData = animationPool.lastOrNull()
-        }
-
-        return when (resultAnimationData) {
-
-            is AppearFadeAnimationData -> {
-                when (transitionType) {
-                    TransitionType.FORWARD -> {
-                        animationPool.add(resultAnimationData)
-                    }
-
-                    TransitionType.BACK -> {
-                        animationPool.removeLastOrNull()
-                    }
-
-                    TransitionType.REPLACE -> {
-                        // do nothing
-                    }
-
-                    TransitionType.RESET -> {
-                        animationPool.clear()
-                    }
-                }
-                appearFadeAnimation
-            }
-
-            is ForwardBackAnimationData -> {
-                when {
-                    transitionType == TransitionType.FORWARD
-                            && ltr -> {
-                        animationPool.add(resultAnimationData)
-                        rightSlideAnim
-                    }
-
-                    transitionType == TransitionType.FORWARD
-                            && rtl -> {
-                        animationPool.add(resultAnimationData)
-                        leftSlideAnim
-                    }
-
-                    transitionType == TransitionType.BACK
-                            && ltr -> {
-                        animationPool.removeLastOrNull()
-                        leftSlideAnim
-                    }
-
-                    transitionType == TransitionType.BACK
-                            && rtl -> {
-                        animationPool.removeLastOrNull()
-                        rightSlideAnim
-                    }
-
-                    transitionType == TransitionType.REPLACE
-                            && ltr -> {
-                        rightSlideAnim
-                    }
-
-                    transitionType == TransitionType.REPLACE
-                            && rtl -> {
-                        leftSlideAnim
-                    }
-
-                    transitionType == TransitionType.RESET
-                            && ltr -> {
-                        animationPool.clear()
-                        leftSlideAnim
-                    }
-
-                    transitionType == TransitionType.RESET
-                            && rtl -> {
-                        animationPool.clear()
-                        rightSlideAnim
-                    }
-
-                    else -> TransitionAnimation.DEFAULT
-                }
-            }
-
-            else -> TransitionAnimation.DEFAULT
-        }
-    }
-
     private companion object {
-        private const val ANIMATION_POOL_KEY = "animation_pool"
+        private const val ANIMATION_PROVIDER_KEY = "animation_provider_key"
     }
 }
