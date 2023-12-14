@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.jamal-wia"
-version = "1.1.0"
+version = "1.1.1"
 
 android {
     namespace = "com.jamal_aliev.navigationcontroller"
@@ -53,7 +53,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.jamal-wia"
                 artifactId = "navigationcontroller"
-                version = "1.1.0"
+                version = "1.1.1"
             }
         }
     }
