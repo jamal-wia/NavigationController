@@ -39,7 +39,7 @@ class NavigationControllerFragment : Fragment(R.layout.container),
             }
         }
 
-    private val showRootScreen by lazy {
+    private val showRootScreenArg by lazy {
         arguments?.getBoolean(
             SHOW_ROOT_SCREEN_ARG_KEY,
             true
@@ -61,7 +61,7 @@ class NavigationControllerFragment : Fragment(R.layout.container),
         super.onCreate(savedInstanceState)
 
         if (savedInstanceState == null) {
-            if (showRootScreen) rootScreenArg?.let { navigator.reset(it) }
+            if (showRootScreenArg) rootScreenArg?.let { navigator.reset(it) }
         } else {
             val rootScreen = (savedInstanceState.getSerializable(ROOT_SCREEN_ARG_KEY)
                 ?: savedInstanceState.getParcelable(ROOT_SCREEN_ARG_KEY)) as? Screen
@@ -263,7 +263,7 @@ class NavigationControllerFragment : Fragment(R.layout.container),
                     NavigationControllerFragment()
                         .apply {
                             arguments = bundleOf(
-                                ROOT_SCREEN_ARG_KEY to rootScreenArg,
+                                ROOT_SCREEN_ARG_KEY to rootScreen,
                                 SHOW_ROOT_SCREEN_ARG_KEY to showRootScreen
                             )
                         }

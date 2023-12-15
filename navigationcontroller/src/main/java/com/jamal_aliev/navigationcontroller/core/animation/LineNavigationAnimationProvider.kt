@@ -17,26 +17,23 @@ class LineNavigationAnimationProvider : TransitionAnimationProvider, Serializabl
 
     private var animationPool = ArrayList<AnimationData>()
 
-    private val rightSlideAnim by lazy {
-        SimpleTransitionAnimation(
+    private val rightSlideAnim
+        get() = SimpleTransitionAnimation(
             R.anim.slide_in_right,
             R.anim.slide_out_left
         )
-    }
 
-    private val leftSlideAnim by lazy {
-        SimpleTransitionAnimation(
+    private val leftSlideAnim
+        get() = SimpleTransitionAnimation(
             R.anim.slide_in_left,
             R.anim.slide_out_right
         )
-    }
 
-    private val appearFadeAnimation by lazy {
-        SimpleTransitionAnimation(
+    private val appearFadeAnimation
+        get() = SimpleTransitionAnimation(
             R.anim.appear,
             R.anim.fade
         )
-    }
 
     override fun getAnimation(
         transitionType: TransitionType,
