@@ -31,6 +31,13 @@ class NavigationControllerFragment : Fragment(R.layout.container),
     OnNavigationUpProvider {
 
     var rootScreenArg: Screen? = null
+        get() {
+            return if (field != null) field
+            else {
+                (arguments?.getSerializable(ROOT_SCREEN_ARG_KEY)
+                    ?: arguments?.getParcelable(ROOT_SCREEN_ARG_KEY)) as? Screen
+            }
+        }
 
     private val showRootScreen by lazy {
         arguments?.getBoolean(
