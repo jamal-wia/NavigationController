@@ -10,7 +10,7 @@ version = "1.1.3"
 
 android {
     namespace = "com.jamal_aliev.navigationcontroller"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 24
@@ -39,9 +39,9 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.10.0")
+    implementation("androidx.core:core-ktx:1.16.0")
+    implementation("androidx.appcompat:appcompat:1.7.1")
+    implementation("com.google.android.material:material:1.12.0")
     api("com.github.aartikov.Alligator:alligator:4.3.0")
 
 }

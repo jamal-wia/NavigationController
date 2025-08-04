@@ -43,10 +43,12 @@ class LineNavigationAnimationProvider : TransitionAnimationProvider, Serializabl
         animationData: AnimationData?
     ): TransitionAnimation {
         var resultAnimationData = animationData
-        resultAnimationData ?: if (transitionType == TransitionType.BACK) {
-            resultAnimationData = animationPool.lastOrNull()
-        } else if (transitionType == TransitionType.REPLACE) {
-            resultAnimationData = animationPool.lastOrNull()
+        if (resultAnimationData == null) {
+            if (transitionType == TransitionType.BACK) {
+                resultAnimationData = animationPool.lastOrNull()
+            } else if (transitionType == TransitionType.REPLACE) {
+                resultAnimationData = animationPool.lastOrNull()
+            }
         }
 
         return when (resultAnimationData) {

@@ -37,14 +37,16 @@ fun Fragment.findFragmentBefore(
     fragment: Fragment,
     predicate: (Fragment) -> Boolean
 ): Fragment? {
-    return fragment.takeIf(predicate)
-        ?: fragment.parentFragment?.let { parent ->
-            findFragmentBefore(
-                fragment = parent,
-                predicate = predicate
-            )
+    var currentFragment: Fragment? = fragment
+    while (currentFragment != null) {
+        if (predicate(currentFragment)) {
+            return currentFragment
         }
+        currentFragment = currentFragment.parentFragment
+    }
+    return null
 }
 
 
 internal fun Fragment.requireAppCompatActivity() = requireActivity() as AppCompatActivity
+

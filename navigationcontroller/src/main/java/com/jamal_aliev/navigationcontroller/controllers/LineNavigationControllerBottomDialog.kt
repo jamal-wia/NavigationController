@@ -5,11 +5,11 @@ import android.content.DialogInterface
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import androidx.appcompat.app.AppCompatDialog
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.jamal_aliev.navigationcontroller.R
 import com.jamal_aliev.navigationcontroller.core.TransactionData
@@ -66,7 +66,7 @@ open class LineNavigationControllerBottomDialog : BottomSheetDialogFragment(R.la
     override fun provideNavigationContext(): NavigationContext = navigationContext
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return object : AppCompatDialog(requireContext(), theme) {
+        return object : BottomSheetDialog(requireContext(), theme) {
             override fun onBackPressed() {
                 requireActivity().onBackPressed()
             }
@@ -79,7 +79,7 @@ open class LineNavigationControllerBottomDialog : BottomSheetDialogFragment(R.la
         lineNavigationAnimationProvider = getOrCreateAnimationProvider(savedInstanceState)
 
         if (savedInstanceState == null) {
-            val screen = screenResolver.getScreen<LineNavigationControllerDialogScreen>(this)
+            val screen = screenResolver.getScreen<LineNavigationControllerBottomDialogScreen>(this)
             requireNavigationContextChanger().setNavigationContext(this)
             for ((index, item) in screen.screens.withIndex()) {
                 if (index == 0) navigator.reset(item)
