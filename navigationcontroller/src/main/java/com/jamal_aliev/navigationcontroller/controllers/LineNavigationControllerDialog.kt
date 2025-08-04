@@ -5,6 +5,7 @@ import android.content.DialogInterface
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatDialog
 import androidx.appcompat.app.AppCompatDialogFragment
 import androidx.core.view.ViewCompat
@@ -67,11 +68,11 @@ open class LineNavigationControllerDialog : AppCompatDialogFragment(R.layout.con
     override fun provideNavigationContext(): NavigationContext = navigationContext
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return object : AppCompatDialog(requireContext(), theme) {
-            override fun onBackPressed() {
-                requireActivity().onBackPressed()
-            }
+        val dialog = AppCompatDialog(requireContext(), theme)
+        dialog.onBackPressedDispatcher.addCallback {
+            requireActivity().onBackPressed()
         }
+        return dialog
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

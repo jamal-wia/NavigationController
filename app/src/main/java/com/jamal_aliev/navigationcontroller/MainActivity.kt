@@ -2,7 +2,6 @@ package com.jamal_aliev.navigationcontroller
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import com.jamal_aliev.navigationcontroller.controllers.LineNavigationControllerFragmentScreen
 import com.jamal_aliev.navigationcontroller.core.NavigationContextChanger
 import com.jamal_aliev.navigationcontroller.core.NavigationControllerFragment
@@ -15,12 +14,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         if (savedInstanceState == null) {
             NavigationControllerFragment.Builder()
-                .setRootScreen(LineNavigationControllerFragmentScreen())
+                .setRootScreen(
+                    LineNavigationControllerFragmentScreen(
+                        listOf(Screens.AppBottomNavigationControllerScreen)
+                    )
+                )
                 .show(supportFragmentManager, R.id.navigation_container)
 
-            lifecycleScope.launchWhenResumed {
-                App.navigator.goForward(Screens.AppBottomNavigationControllerScreen)
-            }
         }
     }
 

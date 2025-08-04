@@ -206,6 +206,7 @@ class NavigationControllerFragment : Fragment(R.layout.container),
                 fragments = requireActivity().supportFragmentManager.fragments,
                 predicate = fun(fragment): Boolean {
                     return fragment is OnNavigationUpProvider
+                            && fragment != this
                             && fragment.childFragmentManager
                         .fragments.all { it !is OnNavigationUpProvider }
                 }

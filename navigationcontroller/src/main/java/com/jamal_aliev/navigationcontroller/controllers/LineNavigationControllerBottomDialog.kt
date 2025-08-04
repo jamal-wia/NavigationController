@@ -5,6 +5,7 @@ import android.content.DialogInterface
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import androidx.activity.addCallback
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -66,11 +67,11 @@ open class LineNavigationControllerBottomDialog : BottomSheetDialogFragment(R.la
     override fun provideNavigationContext(): NavigationContext = navigationContext
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        return object : BottomSheetDialog(requireContext(), theme) {
-            override fun onBackPressed() {
-                requireActivity().onBackPressed()
-            }
+        val dialog = BottomSheetDialog(requireContext(), theme)
+        dialog.onBackPressedDispatcher.addCallback(this) {
+            requireActivity().onBackPressed()
         }
+        return dialog
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -165,7 +166,8 @@ open class LineNavigationControllerBottomDialog : BottomSheetDialogFragment(R.la
 
     override fun canGoBack(): Boolean {
         requireNavigationContextChanger().setNavigationContext(this)
-        return fragmentNavigator?.canGoBack() == true
+        val canGoBack = fragmentNavigator?.canGoBack() == true
+        return canGoBack
     }
 
     override fun onNavigationUp(animationData: AnimationData?): Boolean {
