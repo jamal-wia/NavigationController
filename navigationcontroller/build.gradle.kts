@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.github.jamal-wia"
-version = "1.1.5"
+version = "1.1.6"
 
 android {
     namespace = "com.jamal_aliev.navigationcontroller"
@@ -39,7 +39,7 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.16.0")
+    implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("com.google.android.material:material:1.12.0")
     api("com.github.aartikov.Alligator:alligator:4.3.0")
@@ -53,7 +53,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.jamal-wia"
                 artifactId = "navigationcontroller"
-                version = "1.1.5"
+                version = "1.1.6"
             }
         }
     }

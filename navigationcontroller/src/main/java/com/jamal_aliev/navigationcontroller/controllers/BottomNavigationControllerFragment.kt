@@ -3,6 +3,8 @@ package com.jamal_aliev.navigationcontroller.controllers
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.MenuRes
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.jamal_aliev.navigationcontroller.R
 import com.jamal_aliev.navigationcontroller.core.screen.SwitchScreen
@@ -72,7 +74,7 @@ open class BottomNavigationControllerFragment : SwitchNavigationControllerFragme
     override fun onNavigationUp(animationData: AnimationData?): Boolean {
         return if (super.canGoBack()) super.onNavigationUp(animationData)
         else if (currentScreen.id != rootScreen.id) {
-            backStack.removeLast()
+            backStack.removeAt(backStack.lastIndex)
             requireNavigationContextChanger().setNavigationContext(this)
             navigator.switchTo(rootScreen, animationData) == Unit
         } else false
@@ -92,7 +94,16 @@ open class BottomNavigationControllerFragment : SwitchNavigationControllerFragme
         bottomNavigation.apply {
             menu.clear()
             inflateMenu(menuId)
-            setOnItemSelectedListener { onScreenSelected(it.itemId).run { true } }
+            ViewCompat.setOnApplyWindowInsetsListener(this) { view: View,
+                                                              insets: WindowInsetsCompat ->
+                view.setPadding(0, 0, 0, 0)
+                return@setOnApplyWindowInsetsListener insets
+            }
+            ViewCompat.requestApplyInsets(this)
+            setOnItemSelectedListener {
+                onScreenSelected(it.itemId)
+                return@setOnItemSelectedListener true
+            }
         }
     }
 
