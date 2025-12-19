@@ -20,7 +20,7 @@ repositories {
 ```
 
 ``` Gradle
-implementation("com.github.jamal-wia:NavigationController:1.1.6")
+implementation("com.github.jamal-wia:NavigationController:1.1.7")
 ```
 
 ## **Быстрый старт в 3 шага**
